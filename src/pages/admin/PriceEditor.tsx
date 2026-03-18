@@ -299,17 +299,32 @@ export default function PriceEditor() {
                                             ))}
                                         </div>
 
-                                        <div className="lg:col-span-2">
-                                            <label className="text-[9px] font-black text-gray-400 uppercase ml-2 mb-2 block tracking-widest text-blue-600">Price</label>
-                                            <input
-                                                className="w-full bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm font-black text-blue-700 shadow-sm"
-                                                value={item.price}
-                                                onChange={e => {
-                                                    const newSections = [...price.sections];
-                                                    newSections[sIdx].items[iIdx].price = e.target.value;
-                                                    setPrice({ ...price, sections: newSections });
-                                                }}
-                                            />
+                                        <div className="lg:col-span-2 space-y-2">
+                                            <label className="text-[9px] font-black text-blue-600 uppercase ml-2 mb-2 block tracking-widest">Price</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {langs.map(l => (
+                                                    <div key={l}>
+                                                        <div className="text-[7px] font-bold text-gray-300 uppercase ml-1">{l}</div>
+                                                        <input
+                                                            placeholder="від $100"
+                                                            className="w-full bg-blue-50 border border-blue-100 rounded-lg p-2 text-[10px] font-black text-blue-700 shadow-sm focus:ring-2 focus:ring-blue-200 outline-none"
+                                                            value={
+                                                                typeof item.price === 'object'
+                                                                    ? (item.price?.[l as keyof typeof item.price] || "")
+                                                                    : (l === "en" ? String(item.price || "") : "")
+                                                            }
+                                                            onChange={e => {
+                                                                const newSections = [...price.sections];
+                                                                const currentPrice = typeof item.price === 'object'
+                                                                    ? item.price
+                                                                    : { uk: "", ru: "", en: String(item.price || ""), de: "" };
+                                                                newSections[sIdx].items[iIdx].price = { ...currentPrice, [l]: e.target.value } as any;
+                                                                setPrice({ ...price, sections: newSections });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         <div className="lg:col-span-1 flex justify-center pb-3">
@@ -330,7 +345,7 @@ export default function PriceEditor() {
                                 <Button
                                     onClick={() => {
                                         const newSections = [...price.sections];
-                                        newSections[sIdx].items.push({ duration: {}, procedure: {}, price: "" });
+                                        newSections[sIdx].items.push({ duration: {}, procedure: {}, price: {} });
                                         setPrice({ ...price, sections: newSections });
                                     }}
                                     className="w-full py-4 border-2 border-dashed border-gray-100 rounded-[20px] text-[10px] font-black text-gray-300 uppercase hover:border-blue-200 hover:text-blue-500 hover:bg-blue-50/20 transition-all mt-4 tracking-[0.2em]"

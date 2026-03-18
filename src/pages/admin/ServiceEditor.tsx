@@ -15,6 +15,8 @@ import ImageInputBlock from "../../components/ImageInputBlock.tsx";
 import { useFetchData } from "../../hooks/useFetchData.ts";
 import { SyncedRelationSelect } from "../../components/SyncedRelationSelect.tsx";
 import {adminPath} from "../../utils/adminNavigate.ts";
+import type {Employee} from "../../models/Employee.ts";
+import type {FAQ} from "../../models/FAQ.ts";
 
 const emptyService: Service = {
   title: { uk: "", ru: "", en: "", de: "" },
@@ -44,7 +46,7 @@ export default function ServiceEditor() {
 
   // Загрузка связанных данных (передаем businessSlug в хук)
   const { data: relatedData, loading: relatedLoading } = useFetchData([
-    "services", "prices", "employees", "specials"
+    "services", "prices", "employees", "specials", "faqs"
   ], businessSlug);
 
   const displayName = businessSlug;
@@ -312,6 +314,38 @@ export default function ServiceEditor() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <SyncedRelationSelect<PriceModel> label="Linked Prices" value={service.prices || []} options={(relatedData.prices || []) as PriceModel[]} getLabel={(o) => String(o.category?.[lang] || o.category?.uk || "Untitled Price")} getValue={(o) => o.id!} onChange={(v) => setService({ ...service, prices: v })} firebasePath={`businesses/${businessSlug}/prices`} parentId={service.id} parentFieldName="serviceIds" syncType="array" />
               <SyncedRelationSelect<Special> label="Current Offers" value={service.specials || []} options={(relatedData.specials || []) as Special[]} getLabel={(o) => String(o.title?.[lang] || o.title?.uk || "Untitled Special")} getValue={(o) => o.id!} onChange={(v) => setService({ ...service, specials: v })} firebasePath={`businesses/${businessSlug}/specials`} parentId={service.id} parentFieldName="serviceIds" syncType="array" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {/* Выбор сотрудников */}
+                <SyncedRelationSelect<Employee>
+                    label="Linked Specialists"
+                    multiple
+                    value={service.employees || []}
+                    options={(relatedData.employees || []) as Employee[]}
+                    getLabel={(o) => String(o.fullName?.[lang] || o.fullName?.uk || "Unnamed Specialist")}
+                    getValue={(o) => o.id!}
+                    onChange={(v) => setService({ ...service, employees: v })}
+                    firebasePath={`businesses/${businessSlug}/employees`}
+                    parentId={service.id}
+                    parentFieldName="serviceIds"
+                    syncType="array"
+                />
+
+                {/* Выбор FAQ */}
+                <SyncedRelationSelect<FAQ> // Замените any на ваш тип FAQ, если он есть
+                    label="Related FAQ"
+                    multiple
+                    value={service.faqs || []}
+                    options={(relatedData.faqs || [])}
+                    getLabel={(o) => String(o.question?.[lang] || o.question?.uk || "Untitled FAQ")}
+                    getValue={(o) => o.id!}
+                    onChange={(v) => setService({ ...service, faqs: v })}
+                    firebasePath={`businesses/${businessSlug}/faqs`}
+                    parentId={service.id}
+                    parentFieldName="serviceIds"
+                    syncType="array"
+                />
+              </div>
+
             </div>
           </div>
         </div>

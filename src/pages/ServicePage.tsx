@@ -81,13 +81,19 @@ export default function ServicePage() {
   // Фильтрация с проверкой типов
   const relatedSubservices = services.filter(s => Array.isArray(s.parentServiceIds) && s.parentServiceIds.includes(serviceId));
   const relatedPrices = prices.filter(p => Array.isArray(p.serviceIds) && p.serviceIds.includes(serviceId));
-  const relatedFaqs = faqs.filter(faq => faq.serviceId === serviceId);
+  const relatedFaqs = faqs.filter(faq =>
+      Array.isArray(faq.serviceIds) && faq.serviceIds.includes(serviceId)
+  );
+
   const relatedPhotos = photos
-      .filter(p => p.serviceId === serviceId || p.subserviceId === serviceId)
+      .filter(p =>
+          (Array.isArray(p.serviceIds) && p.serviceIds.includes(serviceId)) ||
+          (Array.isArray(p.subserviceIds) && p.subserviceIds.includes(serviceId))
+      )
       .map(photo => ({
         ...photo,
-        service: photo.serviceId ? services.find(s => s.id === photo.serviceId) : undefined,
-        subservice: photo.subserviceId ? services.find(s => s.id === photo.subserviceId) : undefined,
+        // Оставляем для совместимости с PhotoList, если он ждет одиночные объекты
+        service: services.find(s => Array.isArray(photo.serviceIds) && photo.serviceIds.includes(s.id!)),
         employee: photo.employeeId ? employees.find(e => e.id === photo.employeeId) : undefined
       }));
 

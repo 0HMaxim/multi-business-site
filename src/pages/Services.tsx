@@ -5,6 +5,8 @@ import { useFetchData } from "../hooks/useFetchData.ts";
 import { useBusiness } from "../context/BusinessContext.tsx";
 import type { Service } from "../models/Service.ts";
 import { Breadcrumbs } from "../components/Breadcrumbs.tsx";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function Services() {
   const { t, i18n } = useTranslation();
@@ -14,6 +16,8 @@ export default function Services() {
   const { data, loading } = useFetchData<{
     services: Service[];
   }>(["services"], businessSlug);
+
+  const { pageContent } = usePageContent(businessSlug, "services");
 
   const { meta } = useBusiness();
 
@@ -50,6 +54,13 @@ export default function Services() {
               {getTabLabel(dynamicTab?.description)|| t("services.subtitle")}
             </p>
           </div>
+
+
+          {pageContent?.content && pageContent.content.length > 0 && (
+              <div className="mb-12">
+                <ContentBlockRenderer content={pageContent.content} />
+              </div>
+          )}
 
 
           <div className="flex flex-wrap justify-center gap-8 mb-20">

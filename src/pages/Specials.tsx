@@ -5,6 +5,8 @@ import { TopImage } from "../components/TopImage.tsx";
 import type { Special } from "../models/Special.ts";
 import { useFetchData } from "../hooks/useFetchData.ts";
 import { useBusiness } from "../context/BusinessContext.tsx";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function Specials() {
   const { t, i18n } = useTranslation();
@@ -18,6 +20,9 @@ export default function Specials() {
   const specials = data.specials ?? [];
 
   const { meta } = useBusiness();
+
+  const { pageContent } = usePageContent(businessSlug, "specials");
+
 
   const dynamicTab = meta?.tabs
       ? Object.values(meta.tabs).find(t => t.route === 'specials' || t.route === '/specials')
@@ -50,6 +55,12 @@ export default function Specials() {
               {getTabLabel(dynamicTab?.description)|| t("specials.subtitle")}
             </p>
           </div>
+
+          {pageContent?.content && pageContent.content.length > 0 && (
+              <div className="mb-12">
+                <ContentBlockRenderer content={pageContent.content} />
+              </div>
+          )}
 
 
           <div className="flex flex-col items-center gap-16 mb-20 w-full">

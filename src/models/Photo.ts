@@ -9,8 +9,8 @@ export interface ImageItem {
 
 export interface Photo {
   id?: string;
-  serviceId?: string;
-  subserviceId?: string;
+  serviceIds?: string[];
+  subserviceIds?: string[];
   employeeId?: string;
 
   title?: LocalizedText;

@@ -14,6 +14,8 @@ import type {Blog} from "../models/Blog.ts";
 import type {Special} from "../models/Special.ts";
 import type {Employee} from "../models/Employee.ts";
 import type {Photo} from "../models/Photo.ts";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function FAQ() {
   const { businessSlug } = useParams<{  businessSlug: string }>();
@@ -52,13 +54,14 @@ export default function FAQ() {
 
   const { meta } = useBusiness();
 
+  const { pageContent } = usePageContent(businessSlug, "faq");
+
   const dynamicTab = meta?.tabs
       ? Object.values(meta.tabs).find(t => t.route === 'faq' || t.route === '/faq')
       : null;
 
   const headerImage =
       dynamicTab?.headerImage || "";
-
 
 
   const [selectedService, setSelectedService] = useState("all");
@@ -95,6 +98,12 @@ export default function FAQ() {
         <div className="w-full px-4 md:px-[5rem]">
           <Breadcrumbs />
 
+          {pageContent?.content && pageContent.content.length > 0 && (
+              <div className="mb-12">
+                <ContentBlockRenderer content={pageContent.content} />
+              </div>
+          )}
+
           <div className="py-8 mb-[3.5rem] w-full duration-500 text-foreground">
             <h2 className="text-3xl lg:text-5xl font-[800] mb-[1.5rem]">
               {getTabLabel(dynamicTab?.title) || t("FAQ.title")}
@@ -124,6 +133,9 @@ export default function FAQ() {
               </div>
             </div>
           </div>
+
+
+
 
           <FAQList faqs={filteredFaqs} currentPage={page} setCurrentPage={setPage} />
         </div>

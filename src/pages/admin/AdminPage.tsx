@@ -22,7 +22,8 @@ const translations = {
         prices: "💲 Ціни",
         services: "⚙️ Сервіси",
         specials: "🈹 Акції",
-        photos: "📸 Фото"
+        photos: "📸 Фото",
+        pages: "📄 Сторінки"
     },
     ru: {
         title: "Админ Панель",
@@ -39,7 +40,8 @@ const translations = {
         prices: "💲 Цены",
         services: "⚙️ Услуги",
         specials: "🈹 Акции",
-        photos: "📸 Фото"
+        photos: "📸 Фото",
+        pages: "📄 Страницы"
     },
     en: {
         title: "Admin Panel",
@@ -56,7 +58,8 @@ const translations = {
         prices: "💲 Prices",
         services: "⚙️ Services",
         specials: "🈹 Specials",
-        photos: "📸 Photos"
+        photos: "📸 Photos",
+        pages: "📄 Pages"
     },
     de: {
         title: "Admin-Bereich",
@@ -73,7 +76,8 @@ const translations = {
         prices: "💲 Preise",
         services: "⚙️ Dienstleistungen",
         specials: "🈹 Angebote",
-        photos: "📸 Fotos"
+        photos: "📸 Fotos",
+        pages: "📄 Seiten"
     },
 };
 
@@ -139,7 +143,7 @@ export default function AdminPage() {
         // Список ваших стандартных вкладок
         const defaultTabs: Record<string, any> = {
             "about": { route: "about", order: 0, enabled: true, shortName: { uk: "Про нас", ru: "О нас", en: "About", de: "Über uns" }, title: { uk: "Про нас", ru: "О нас", en: "About Us", de: "Über uns" } },
-            "specials": { route: "specials", order: 1, enabled: true, shortName: { uk: "Акції", ru: "Акции", en: "Specials", de: "Angebote" }, title: { uk: "Наші Акції", ru: "Наши Акции", en: "Our Specials", de: "Unsere Angebote" } },
+            "specials": { route: "", order: 1, enabled: true, shortName: { uk: "Акції", ru: "Акции", en: "Specials", de: "Angebote" }, title: { uk: "Наші Акції", ru: "Наши Акции", en: "Our Specials", de: "Unsere Angebote" } },
             "services": { route: "services", order: 2, enabled: true, shortName: { uk: "Послуги", ru: "Услуги", en: "Services", de: "Dienstleistungen" }, title: { uk: "Послуги", ru: "Услуги", en: "Our Services", de: "Dienstleistungen" } },
             "employees": { route: "employees", order: 3, enabled: true, shortName: { uk: "Команда", ru: "Команда", en: "Team", de: "Team" }, title: { uk: "Наші Фахівці", ru: "Наши Специалисты", en: "Our Team", de: "Unser Team" } },
             "price": { route: "price", order: 4, enabled: true, shortName: { uk: "Ціни", ru: "Цены", en: "Prices", de: "Preise" }, title: { uk: "Прайс-лист", ru: "Прайс-лист", en: "Price List", de: "Preisliste" } },
@@ -240,7 +244,7 @@ export default function AdminPage() {
                 >
                     {/* Меню вкладок */}
                     <div className="flex gap-4 mb-8 flex-wrap">
-                        {["meta","generalinfo","blogs","employees","faq","prices","services","specials","photos"].map(path => {
+                        {["meta","generalinfo","blogs","employees","faq","prices","services","specials","photos","pages"].map(path => {
                             const isActive = location.pathname.includes(`/${path}`);
                             return (
                                 <Link

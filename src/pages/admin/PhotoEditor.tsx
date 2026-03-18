@@ -32,7 +32,8 @@ export default function PhotoEditor() {
         title: {},
         description: {},
         imgArr: [],
-        serviceId: "",
+        serviceIds: [],
+        subserviceIds: [],
         employeeId: "",
     };
 
@@ -129,26 +130,30 @@ export default function PhotoEditor() {
 
                         {/* Сервисы - теперь multiple={false} чтобы работал один выбор */}
                         <SyncedRelationSelect<Service>
-                            label="Service"
-                            value={photo.serviceId ? [photo.serviceId] : []}
+                            label="Services (Multiple)"
+                            // Используем массив ID напрямую
+                            value={photo.serviceIds || []}
                             options={(relatedData.services || []) as Service[]}
                             getLabel={(o) => {
                                 const t = o.title?.[i18n.language as keyof typeof o.title]
                                     || o.title?.uk
                                     || o.title?.ru
                                     || o.title?.en
-                                    || o.title?.de
                                     || "Untitled Service";
-                                return String(t); // гарантированно строка
+                                return String(t);
                             }}
-
                             getValue={(o) => String(o.id || "")}
-                            multiple={false}
+
+                            // Ключевые изменения здесь:
+                            multiple={true}
+                            syncType="array" // SyncedRelationSelect уже умеет работать с массивами
+
                             firebasePath={`businesses/${businessSlug}/services`}
                             parentId={id === "new" ? undefined : id}
                             parentFieldName="photos"
-                            syncType="array"
-                            onChange={(v) => setPhoto(prev => ({ ...prev, serviceId: v[0] || "" }))}
+
+                            // Обновляем состояние массива в объекте photo
+                            onChange={(v) => setPhoto(prev => ({ ...prev, serviceIds: v }))}
                         />
 
                         {/* Специалисты */}

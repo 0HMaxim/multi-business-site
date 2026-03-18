@@ -5,4 +5,5 @@ export interface FAQ {
   serviceId?: string;
   question: LocalizedText;
   answer: LocalizedText;
+  serviceIds?: string[];
 }

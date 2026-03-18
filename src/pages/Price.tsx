@@ -7,6 +7,8 @@ import {useParams} from "react-router-dom";
 import i18n from "i18next";
 // Импортируем хук
 import { useGeneralInfo } from "../hooks/useGeneralInfo";
+import {usePageContent} from "../hooks/usePageContent.tsx";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
 
 export default function Price() {
     const { t } = useTranslation();
@@ -14,6 +16,8 @@ export default function Price() {
     const { businessSlug } = useParams<{ businessSlug: string }>();
 
     const { meta } = useBusiness();
+
+    const { pageContent } = usePageContent(businessSlug, "price");
 
     const { info } = useGeneralInfo(businessSlug);
 
@@ -46,13 +50,19 @@ export default function Price() {
                                 <span>
                                     {info?.phone && (
                                         <a href={`tel:${info?.phone?.[lang]}`} className="text-foreground duration-500 text-[1.3rem] md:text-[1.7rem] font-[600]">
-                                            {info?.phone?.[lang]}
+                                             {info?.phone?.[lang]}
                                         </a>
                                     )}
                                 </span>
                             </p>
                         </div>
                     </div>
+
+                    {pageContent?.content && pageContent.content.length > 0 && (
+                        <div className="mb-12">
+                            <ContentBlockRenderer content={pageContent.content} />
+                        </div>
+                    )}
 
                     <PriceTable businessSlug={businessSlug}/>
                 </div>

@@ -4,6 +4,8 @@ import { TopImage } from "../components/TopImage.tsx";
 import { Breadcrumbs } from "../components/Breadcrumbs.tsx";
 import { useFetchData } from "../hooks/useFetchData.ts";
 import { useBusiness } from "../context/BusinessContext.tsx";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 //import { uploadBusiness } from "../upload.ts";
 
@@ -16,6 +18,7 @@ export default function Employees() {
   const employees = data.employees ?? [];
 
   const { meta } = useBusiness();
+  const { pageContent } = usePageContent(businessSlug, "employees");
 
   const dynamicTab = meta?.tabs
       ? Object.values(meta.tabs).find(t => t.route === 'employees' || t.route === '/employees')
@@ -23,7 +26,6 @@ export default function Employees() {
 
   const headerImage =
       dynamicTab?.headerImage || "";
-
 
   const getTabLabel = (localizedValue: any) => {
     if (!localizedValue) return "";
@@ -51,6 +53,13 @@ export default function Employees() {
                 {getTabLabel(dynamicTab?.description) || t("employees.subtitle")}
               </p>
           </div>
+
+
+            {pageContent?.content && pageContent.content.length > 0 && (
+                <div className="mb-12">
+                  <ContentBlockRenderer content={pageContent.content} />
+                </div>
+            )}
 
           {/* Сетка карточек — ДИЗАЙН КАК БЫЛ (Цельная ссылка) */}
           <div className="flex flex-wrap gap-10 justify-center w-full mb-20">

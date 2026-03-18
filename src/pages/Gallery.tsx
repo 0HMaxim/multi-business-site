@@ -7,6 +7,8 @@ import { Breadcrumbs } from "../components/Breadcrumbs.tsx";
 import PhotoList from "../components/PhotoList.tsx";
 import { useBusiness } from "../context/BusinessContext.tsx";
 import { useFetchData } from "../hooks/useFetchData.ts";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function Gallery() {
     const { t, i18n } = useTranslation();
@@ -23,6 +25,8 @@ export default function Gallery() {
     const employees = data.employees ?? [];
 
     const { meta } = useBusiness();
+    const { pageContent } = usePageContent(businessSlug, "gallery");
+
 
     const dynamicTab = meta?.tabs
         ? Object.values(meta.tabs).find(t => t.route === 'gallery' || t.route === '/gallery')
@@ -87,6 +91,12 @@ export default function Gallery() {
 
             <div className="w-full px-4 md:px-[5rem]">
                 <Breadcrumbs />
+
+                {pageContent?.content && pageContent.content.length > 0 && (
+                    <div className="mb-12">
+                        <ContentBlockRenderer content={pageContent.content} />
+                    </div>
+                )}
 
                 <div className="py-8 mb-[3.5rem] w-full duration-500 text-foreground">
                     <h2 className="text-3xl lg:text-5xl font-[800] mb-[1.5rem]">

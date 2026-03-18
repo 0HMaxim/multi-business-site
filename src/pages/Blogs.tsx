@@ -6,6 +6,8 @@ import type { Blog } from "../models/Blog.ts";
 import { useBusiness } from "../context/BusinessContext.tsx";
 import { useFetchData } from "../hooks/useFetchData.ts";
 import {BlogItem} from "../components/BlogItem.tsx";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function Blogs() {
   const { t, i18n } = useTranslation();
@@ -15,6 +17,7 @@ export default function Blogs() {
   const { data, loading } = useFetchData(["blogs"], businessSlug);
   const blogs = (data.blogs || []) as Blog[];
   const { meta } = useBusiness();
+  const { pageContent } = usePageContent(businessSlug, "blogs");
 
   const dynamicTab = meta?.tabs
       ? Object.values(meta.tabs).find(t => t.route === 'blogs' || t.route === '/blogs')
@@ -48,6 +51,13 @@ export default function Blogs() {
                 {getTabLabel(dynamicTab?.description) || t("blog.subtitle")}
               </p>
             </div>
+
+
+            {pageContent?.content && pageContent.content.length > 0 && (
+                <div className="mb-12">
+                  <ContentBlockRenderer content={pageContent.content} />
+                </div>
+            )}
 
             <div className="flex flex-wrap justify-center gap-6 md:gap-8">
               {blogs.map((item) => (

@@ -140,7 +140,9 @@ export default function PriceTable({ items, businessSlug, serviceId, subserviceI
                                 <td className="px-[1rem] lg:px-[3rem] py-[1rem] md:py-[1.5rem] border-l border-muted">
                                   <div className="flex items-center justify-end gap-2">
       <span className="font-bold whitespace-nowrap">
-        {item?.price || "—"}
+        {(typeof item?.price === "object"
+            ? item.price?.[lang] || item.price?.["en"]
+            : item?.price) || "—"}
       </span>
                                     <button
                                         onClick={() => toggleItem(key)}

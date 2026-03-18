@@ -16,6 +16,8 @@ import StreamlineInstagram from "~icons/streamline/instagram";
 import F7LogoFacebook from "~icons/f7/logo-facebook";
 import BiDashLg from "~icons/bi/dash-lg";
 import MaterialSymbolsPhoneIphoneOutlineSharp from "~icons/material-symbols/phone-iphone-outline-sharp";
+import {ContentBlockRenderer} from "../components/ContentBlockRenderer.tsx";
+import {usePageContent} from "../hooks/usePageContent.tsx";
 
 export default function Contact() {
   const { i18n, t } = useTranslation();
@@ -25,6 +27,8 @@ export default function Contact() {
   const { info, loading } = useGeneralInfo(businessSlug);
 
   const { meta } = useBusiness();
+
+  const { pageContent } = usePageContent(businessSlug, "contact");
 
   const dynamicTab = meta?.tabs
       ? Object.values(meta.tabs).find(t => t.route === 'contact' || t.route === '/contact')
@@ -56,6 +60,12 @@ export default function Contact() {
           <div className="py-8 mb-[2.5rem] text-foreground duration-500">
             <h2 className="text-3xl lg:text-5xl font-extrabold mb-6">{t("contact.contacts")}</h2>
           </div>
+
+          {pageContent?.content && pageContent.content.length > 0 && (
+              <div className="mb-12">
+                <ContentBlockRenderer content={pageContent.content} />
+              </div>
+          )}
 
           <div className="flex flex-col lg:flex-row gap-8 mb-20 text-foreground duration-500">
             <div className="flex flex-wrap gap-6 lg:w-1/2">

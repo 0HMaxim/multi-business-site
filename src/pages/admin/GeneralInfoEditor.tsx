@@ -58,7 +58,7 @@ export default function GeneralInfoEditor() {
                 updatedAt: Date.now(),
             });
 
-            navigate(adminPath(lang!, businessSlug!, "generalinfo"));
+            navigate(adminPath(lang!, businessSlug!, ""));
         } catch (error) {
             console.error("Save error:", error);
         }
@@ -76,7 +76,7 @@ export default function GeneralInfoEditor() {
                     <p className="text-gray-400 text-sm font-medium mt-1 uppercase tracking-wider">Contact Details & Location</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={() => navigate(adminPath(lang!, businessSlug!, "generalinfo"))} className="text-gray-400 font-black text-xs uppercase tracking-widest px-4">Discard</button>
+                    <button onClick={() => navigate(adminPath(lang!, businessSlug!, ""))} className="text-gray-400 font-black text-xs uppercase tracking-widest px-4">Discard</button>
                     <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-2xl font-bold shadow-lg shadow-blue-100 active:scale-95 transition-all">Save All</button>
                 </div>
             </div>
@@ -241,7 +241,7 @@ export default function GeneralInfoEditor() {
             </div>
 
             <div className="mt-12 pt-8 border-t border-gray-50 flex justify-end">
-                <button onClick={() => navigate(adminPath(lang!, businessSlug!, "generalinfo"))} className="text-gray-400 font-black text-xs uppercase tracking-widest px-4">Discard</button>
+                <button onClick={() => navigate(adminPath(lang!, businessSlug!, ""))} className="text-gray-400 font-black text-xs uppercase tracking-widest px-4">Discard</button>
                 <button
                     onClick={handleSave}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-20 py-6 rounded-[2.5rem] transition-all font-black shadow-2xl active:scale-95 uppercase tracking-[0.2em] text-sm"

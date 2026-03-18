@@ -3,7 +3,7 @@ import type { LocalizedText } from "./LocalizedText";
 export interface PriceItem {
   duration: LocalizedText;
   procedure: LocalizedText;
-  price: string;
+  price: LocalizedText;
 }
 
 export interface PriceSection {

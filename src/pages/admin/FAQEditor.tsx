@@ -143,16 +143,16 @@ export default function FAQEditor() {
                 <div className="text-blue-300 text-[10px] animate-pulse uppercase font-bold">Loading Services...</div>
             ) : (
                 <SyncedRelationSelect<Service>
-                    label="Associated Service"
-                    multiple={false} // FAQ обычно привязан к одной услуге
-                    value={faq.serviceId ? [faq.serviceId] : []}
+                    label="Associated Services"
+                    multiple={true}
+                    value={faq.serviceIds || []}
                     options={allServices}
                     getLabel={(o) => String(o.title?.[lang] || o.title?.uk || "Untitled Service")}
                     getValue={(o) => o.id!}
-                    onChange={(v) => setFAQ({ ...faq, serviceId: v[0] || "" })}
+                    onChange={(v) => setFAQ({ ...faq, serviceIds: v })}
                     firebasePath={`businesses/${businessSlug}/services`}
                     parentId={faq.id}
-                    parentFieldName="faqs" // Поле в модели Service, где будет лежать массив ID этих FAQ
+                    parentFieldName="faqs"
                     syncType="array"
                 />
             )}

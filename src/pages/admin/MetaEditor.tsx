@@ -9,6 +9,7 @@ import { TopImage } from "../../components/TopImage.tsx";
 import { useEffect, useState } from "react";
 import IconXMark from "~icons/fa6-solid/xmark";
 import type {MetaTab} from "../../models/MetaTab.ts";
+import {adminPath} from "../../utils/adminNavigate.ts";
 
 const LANGS = ["uk", "ru", "en", "de"] as const;
 const BUSINESS_TYPES: BusinessType[] = ["clinic", "salon", "company", "studio", "shop", "other"];
@@ -99,17 +100,17 @@ export default function MetaEditor() {
                     ...meta,
                     updatedAt: Date.now()
                 }),
-                update(ref(db, `businesses/${businessSlug}/generalInfo`), {
+                update(ref(db, `businesses/${businessSlug}/meta`), {
                     map: info?.map || ""
                 })
             ]);
-            navigate(`/${lang}/admin/${businessSlug}`);
+
+            navigate(adminPath(lang!, businessSlug!, ""));
         } catch (e) {
             console.error("Save error:", e);
         }
     };
 
-    // Универсальный рендер картинок (для Logo, HomeHeader и Табов)
     // Универсальный рендер картинок (для Logo, HomeHeader и Табов)
     const renderImageInput = (label: string, field: keyof BusinessMeta | "tabs", tabKey?: string) => {
         const currentTab = tabKey ? meta?.tabs?.[tabKey] : null;
@@ -157,9 +158,7 @@ export default function MetaEditor() {
                         <input
                             className="w-full border border-gray-200 rounded-lg p-2 text-xs font-mono bg-white outline-none focus:ring-2 focus:ring-blue-100 transition-all"
                             placeholder="e.g. services or /contacts"
-                            // Берем значение напрямую из meta по ключу
                             value={meta?.tabs?.[tabKey]?.route || ""}
-                            // Обновляем роут именно для этого tabKey
                             onChange={(e) => {
                                 const newRoute = e.target.value;
                                 setMeta(prev => {
@@ -196,7 +195,7 @@ export default function MetaEditor() {
                     <p className="text-gray-400 text-sm font-medium mt-1">Full Branding & Navigation Control</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={() => navigate(-1)} className="text-gray-400 font-black text-xs uppercase tracking-widest hover:text-gray-600 transition">Discard</button>
+                    <button onClick={() => navigate(adminPath(lang!, businessSlug!, ""))} className="text-gray-400 font-black text-xs uppercase tracking-widest hover:text-gray-600 transition">Discard</button>
                     <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-2xl transition-all font-bold shadow-lg shadow-blue-100 active:scale-95">Save All</button>
                 </div>
             </div>
@@ -432,6 +431,7 @@ export default function MetaEditor() {
             </div>
 
             <div className="mt-12 pt-8 border-t border-gray-50 flex justify-end">
+                <button onClick={() => navigate(adminPath(lang!, businessSlug!, ""))} className="text-gray-400 font-black text-xs uppercase tracking-widest hover:text-gray-600 transition">Discard</button>
                 <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-20 py-6 rounded-[2.5rem] transition-all font-black shadow-2xl active:scale-95 uppercase tracking-[0.2em] text-sm">Update All Metadata</button>
             </div>
         </div>
