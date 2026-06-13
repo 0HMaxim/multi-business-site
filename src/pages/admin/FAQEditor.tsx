@@ -88,7 +88,7 @@ export default function FAQEditor() {
 
       await set(ref(db, `businesses/${businessSlug}/faqs/${targetId}`), dataToSave);
 
-      navigate(adminPath(lang!, businessSlug!, "employees"))
+      navigate(adminPath(lang!, businessSlug!, "faq"))
 
     } catch (e) {
       console.error("Save error:", e);

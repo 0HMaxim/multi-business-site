@@ -185,7 +185,7 @@ export default function AdminPage() {
                 {businessSlug && (
                     <Link
                         to={`/${lang}/${businessSlug}/`}
-                        className="hidden sm:flex items-center gap-2 bg-black/5 hover:bg-black text-black hover:text-white px-5 py-3 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest border border-black/5 shadow-sm"
+                        className="flex items-center gap-2 bg-black/5 hover:bg-black text-black hover:text-white px-5 py-3 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest border border-black/5 shadow-sm"
                     >
                         <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                         Home

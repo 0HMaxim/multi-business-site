@@ -145,8 +145,8 @@ export default function PriceEditor() {
                 </section>
 
                 {/* Step 2: Relations */}
-                <section className="bg-blue-50/40 p-10 rounded-[48px] border border-blue-100/50 shadow-inner space-y-8">
-                    <h2 className="text-[11px] font-black text-blue-900 mb-4 tracking-[0.3em] uppercase flex items-center gap-3">
+                <section className="bg-blue-900 p-10 rounded-[48px] border border-blue-100/50 shadow-inner space-y-8">
+                    <h2 className="text-[11px] text-white  text-blue-900 mb-4 tracking-[0.3em] uppercase flex items-center gap-3">
                         <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                         Strategic Connections
                     </h2>

@@ -79,7 +79,7 @@ export default function FAQ() {
       () =>
           selectedService === "all"
               ? faqs
-              : faqs.filter((faq) => faq.serviceId === selectedService),
+              : faqs.filter((faq) => Array.isArray(faq.serviceIds) && faq.serviceIds.includes(selectedService)),
       [faqs, selectedService]
   );
 

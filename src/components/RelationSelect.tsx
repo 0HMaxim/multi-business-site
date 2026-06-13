@@ -35,7 +35,7 @@ export default function RelationSelect<T>({
 
   return (
       <div className="flex flex-col gap-2 my-2">
-        <label className="font-medium mb-1">{label}</label>
+        <label className="font-medium mb-1 text-white">{label}</label>
 
         <div className="flex flex-col gap-1 border rounded-lg p-3 bg-white">
           {options.map((opt) => {

@@ -66,7 +66,7 @@ export default function Gallery() {
         () =>
             photos.filter(
                 (p) =>
-                    (selectedService === "all" || p.serviceId === selectedService) &&
+                    (selectedService === "all" || (Array.isArray(p.serviceIds) && p.serviceIds.includes(selectedService))) &&
                     (selectedEmployee === "all" || p.employeeId === selectedEmployee)
             ),
         [photos, selectedService, selectedEmployee]
@@ -76,7 +76,7 @@ export default function Gallery() {
         () =>
             filteredPhotos.map((p) => ({
                 ...p,
-                service: services.find((s) => s.id === p.serviceId),
+                service: services.find((s) => Array.isArray(p.serviceIds) && p.serviceIds.includes(s.id!)),
                 employee: employees.find((e) => e.id === p.employeeId),
             })),
         [filteredPhotos, services, employees]

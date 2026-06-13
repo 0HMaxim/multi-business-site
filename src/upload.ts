@@ -4,7 +4,7 @@
 
 import { ref, set, push } from "firebase/database";
 import { db } from "./firebase";
-import type { BusinessMeta, BusinessType } from "./models/Meta.ts";
+import type { BusinessMeta } from "./models/Meta.ts";
 import type { GeneralInfo } from "./models/GeneralInfo.ts";
 import type { Service } from "./models/Service.ts";
 import type { PriceModel } from "./models/Price.ts";
@@ -15,949 +15,860 @@ import type { Special } from "./models/Special.ts";
 import type { Photo } from "./models/Photo.ts";
 import type { PageContent } from "./models/PageContent.ts";
 
-const businessSlug = "DrivePoint";
 
-// ═══════════════════════════════════════════════════════════
-// META — унікальні назви табів
-// ═══════════════════════════════════════════════════════════
-const meta: BusinessMeta = {
-  name:      { uk: "DrivePoint",     ru: "DrivePoint",     en: "DrivePoint",     de: "DrivePoint" },
-  shortName: { uk: "DrivePoint",     ru: "DrivePoint",     en: "DrivePoint",     de: "DrivePoint" },
-  type: "company" as BusinessType,
-  slogan: {
-    uk: "Сідайте за кермо — ми потурбуємось про решту",
-    ru: "Садитесь за руль — мы позаботимся об остальном",
-    en: "Get behind the wheel — we take care of the rest",
-    de: "Setzen Sie sich ans Steuer — wir kümmern uns um den Rest"
-  },
-  description: {
-    uk: "Прокат легкових автомобілів, SUV, мінівенів та преміум-класу. Подобова і тривала оренда. Доставка в аеропорт, готель або додому. Без застави при наявності картки, без прихованих платежів.",
-    ru: "Прокат легковых автомобилей, SUV, минивэнов и премиум-класса. Посуточная и длительная аренда. Доставка в аэропорт, отель или домой. Без залога при наличии карты, без скрытых платежей.",
-    en: "Car rental: sedans, SUVs, minivans and premium vehicles. Daily and long-term rental. Delivery to airport, hotel or your door. No deposit with a card, no hidden fees.",
-    de: "Autovermietung: Limousinen, SUVs, Minivans und Premium-Fahrzeuge. Tages- und Langzeitmiete. Lieferung zum Flughafen, Hotel oder nach Hause. Keine Kaution bei Kartenzahlung, keine versteckten Gebühren."
-  },
-  logo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?q=80&w=2025",
-  tabs: {
-    garage: {
-      route: "about", order: 0, enabled: true,
-      shortName: { uk: "Гараж",       ru: "Гараж",       en: "Our Garage",   de: "Garage" },
-      title:     { uk: "Про DrivePoint та наш автопарк", ru: "О DrivePoint и нашем автопарке", en: "About DrivePoint & Our Fleet", de: "Über DrivePoint & unsere Flotte" },
-      description: { uk: "Хто ми, як ми обслуговуємо авто та наші гарантії", ru: "Кто мы, как обслуживаем авто и наши гарантии", en: "Who we are, how we maintain cars and our guarantees", de: "Wer wir sind, wie wir Autos warten und unsere Garantien" },
-      headerImage: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2070"
-    },
-    catalogue: {
-      route: "services", order: 1, enabled: true,
-      shortName: { uk: "Каталог",     ru: "Каталог",     en: "Catalogue",    de: "Katalog" },
-      title:     { uk: "Каталог автомобілів для оренди", ru: "Каталог автомобилей для аренды", en: "Car Rental Catalogue", de: "Fahrzeugkatalog zur Miete" },
-      description: { uk: "Economy, Comfort, SUV, Premium та мінівени", ru: "Economy, Comfort, SUV, Premium и минивэны", en: "Economy, Comfort, SUV, Premium and minivans", de: "Economy, Comfort, SUV, Premium und Minivans" },
-      headerImage: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=2070"
-    },
-    hot_wheels: {
-      route: "specials", order: 2, enabled: true,
-      shortName: { uk: "Hot Wheels",  ru: "Hot Wheels",  en: "Hot Wheels",   de: "Hot Wheels" },
-      title:     { uk: "Акції та знижки на прокат", ru: "Акции и скидки на прокат", en: "Rental Deals & Discounts", de: "Mietangebote & Rabatte" },
-      description: { uk: "Тижневі флеш-акції та сезонні тарифи", ru: "Еженедельные флеш-акции и сезонные тарифы", en: "Weekly flash deals and seasonal rates", de: "Wöchentliche Flash-Deals und Saisonpreise" },
-      headerImage: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070"
-    },
-    rates: {
-      route: "price", order: 3, enabled: true,
-      shortName: { uk: "Тарифи",      ru: "Тарифы",      en: "Rates",        de: "Tarife" },
-      title:     { uk: "Тарифи та умови оренди", ru: "Тарифы и условия аренды", en: "Rental Rates & Terms", de: "Mietpreise & Bedingungen" },
-      description: { uk: "Прозорі ціни на всі категорії авто", ru: "Прозрачные цены на все категории авто", en: "Transparent pricing for all vehicle categories", de: "Transparente Preise für alle Fahrzeugkategorien" }
-    },
-    crew: {
-      route: "employees", order: 4, enabled: true,
-      shortName: { uk: "Команда",     ru: "Команда",     en: "Crew",         de: "Team" },
-      title:     { uk: "Наша команда та водії", ru: "Наша команда и водители", en: "Our Crew & Drivers", de: "Unser Team & Fahrer" },
-      description: { uk: "Менеджери, водії та механіки DrivePoint", ru: "Менеджеры, водители и механики DrivePoint", en: "DrivePoint managers, drivers and mechanics", de: "DrivePoint-Manager, Fahrer und Mechaniker" },
-      headerImage: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070"
-    },
-    rulebook: {
-      route: "faq", order: 5, enabled: true,
-      shortName: { uk: "Правила",     ru: "Правила",     en: "Rulebook",     de: "Regeln" },
-      title:     { uk: "Умови оренди та часті питання", ru: "Условия аренды и частые вопросы", en: "Rental Terms & FAQ", de: "Mietbedingungen & FAQ" },
-      description: { uk: "Все що потрібно знати до підписання договору", ru: "Всё что нужно знать до подписания договора", en: "Everything to know before signing the contract", de: "Alles was man vor der Vertragsunterzeichnung wissen muss" }
-    },
-    showroom: {
-      route: "gallery", order: 6, enabled: true,
-      shortName: { uk: "Шоурум",      ru: "Шоурум",      en: "Showroom",     de: "Showroom" },
-      title:     { uk: "Фото нашого автопарку", ru: "Фото нашего автопарка", en: "Fleet Photo Gallery", de: "Fuhrpark-Fotogalerie" },
-      description: { uk: "Реальні фото автомобілів — зовні і всередині", ru: "Реальные фото автомобилей — снаружи и внутри", en: "Real car photos — outside and inside", de: "Echte Autofotos — außen und innen" },
-      headerImage: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=2070"
-    },
-    roadnotes: {
-      route: "blogs", order: 7, enabled: true,
-      shortName: { uk: "Дорожні нотатки", ru: "Дорожные записки", en: "Road Notes",  de: "Straßennotizen" },
-      title:     { uk: "Поради водіям та мандрівникам", ru: "Советы водителям и путешественникам", en: "Tips for Drivers & Travellers", de: "Tipps für Fahrer & Reisende" },
-      description: { uk: "Маршрути, лайфхаки та огляди авто від нашої команди", ru: "Маршруты, лайфхаки и обзоры авто от нашей команды", en: "Routes, life hacks and car reviews from our team", de: "Routen, Lifehacks und Autorezensionen von unserem Team" },
-      headerImage: "https://images.unsplash.com/photo-1488998527040-85054a85150e?q=80&w=2070"
-    },
-    dispatch: {
-      route: "contact", order: 8, enabled: true,
-      shortName: { uk: "Диспетчер",   ru: "Диспетчер",   en: "Dispatch",     de: "Disposition" },
-      title:     { uk: "Замовити авто прямо зараз", ru: "Заказать авто прямо сейчас", en: "Book a Car Right Now", de: "Auto jetzt buchen" },
-      description: { uk: "Диспетчер на зв'язку 24/7 — відповімо за 5 хвилин", ru: "Диспетчер на связи 24/7 — ответим за 5 минут", en: "Dispatcher available 24/7 — we reply in 5 minutes", de: "Dispatcher rund um die Uhr — Antwort in 5 Minuten" }
-    }
-  }
-};
+interface BusinessData {
+  meta: BusinessMeta;
+  generalInfo: GeneralInfo;
+  services: Omit<Service, "id">[];
+  prices: Omit<PriceModel, "id">[];
+  employees: Omit<Employee, "id">[];
+  faqs: Omit<FAQ, "id">[];
+  specials: Omit<Special, "id">[];
+  photos: Omit<Photo, "id">[];
+  blogs: Omit<Blog, "id">[];
+  pages: { about: PageContent; [key: string]: PageContent };
+}
 
-// ═══════════════════════════════════════════════════════════
-// GENERAL INFO
-// ═══════════════════════════════════════════════════════════
-const generalInfo: GeneralInfo = {
-  address: {
-    uk: "просп. Перемоги, 67, Київ, 03113",
-    ru: "просп. Победы, 67, Киев, 03113",
-    en: "67 Peremohy Ave, Kyiv, 03113",
-    de: "Peremohy-Allee 67, Kiew, 03113"
-  },
-  phone: {
-    uk: "+38 (044) 400-66-88",
-    ru: "+38 (044) 400-66-88",
-    en: "+38 044 400-66-88",
-    de: "+38 044 400-66-88"
-  },
-  email: "book@drivepoint.ua",
-  working_hours: [
-    { days: { uk: "Пн–Нд", ru: "Пн–Вс", en: "Mon–Sun", de: "Mo–So" }, hours: "07:00–23:00" },
-    { days: { uk: "Аеропорт Бориспіль", ru: "Аэропорт Борисполь", en: "Boryspil Airport", de: "Flughafen Boryspil" }, hours: "24/7" }
-  ],
-  messengers: {
-    telegram: "@drivepoint_ua",
-    viber: "+380444006688",
-    whatsapp: "+380444006688"
-  },
-  socials: {
-    instagram: "instagram.com/drivepoint.ua",
-    facebook: "facebook.com/drivepointua"
-  },
-  map: "https://maps.google.com/?q=Peremohy+67+Kyiv"
-};
 
-// ═══════════════════════════════════════════════════════════
-// SERVICES  (route: "services" = tab "catalogue")
-// ═══════════════════════════════════════════════════════════
-const services: Omit<Service, "id">[] = [
+const businessSlug = "LinguaPoint";
 
-  // ── 1. Economy ──────────────────────────────────────────
-  {
-    slug: "economy-cars",
-    mainImage: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2070",
-    title:       { uk: "Economy клас",         ru: "Economy класс",          en: "Economy Class",          de: "Economy-Klasse" },
-    subtitle:    { uk: "Volkswagen Polo, Skoda Fabia, Hyundai i20 — місто без зайвих витрат", ru: "Volkswagen Polo, Skoda Fabia, Hyundai i20 — город без лишних трат", en: "Volkswagen Polo, Skoda Fabia, Hyundai i20 — city driving without overspending", de: "Volkswagen Polo, Skoda Fabia, Hyundai i20 — Stadtfahrten ohne Mehrkosten" },
-    headerTitle: { uk: "Дешево — не значить погано", ru: "Дёшево — не значит плохо", en: "Affordable doesn't mean bad", de: "Günstig bedeutet nicht schlecht" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Economy — найпопулярніший клас у міських поїздках", ru: "Economy — самый популярный класс для городских поездок", en: "Economy — the most popular class for city trips", de: "Economy — die beliebteste Klasse für Stadtfahrten" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Якщо вам потрібно просто дістатись з точки А до точки Б, не думати про паркінг у центрі і не витрачати зайве на пальне — Economy клас це те що потрібно. Усі авто Economy — не старші 3 років, з кондиціонером, повним баком та пройденим ТО.",
-          ru: "Если вам нужно просто добраться из точки А в точку Б, не думать о парковке в центре и не тратить лишнее на топливо — Economy класс это то что нужно. Все авто Economy — не старше 3 лет, с кондиционером, полным баком и пройденным ТО.",
-          en: "If you just need to get from A to B, not worry about parking in the city centre and not overspend on fuel — Economy class is what you need. All Economy cars are no older than 3 years, with AC, a full tank and a recent service.",
-          de: "Wenn Sie nur von A nach B kommen möchten, sich keine Gedanken über Parkplätze in der Innenstadt machen wollen und nicht zu viel für Kraftstoff ausgeben möchten — Economy-Klasse ist das Richtige. Alle Economy-Autos sind nicht älter als 3 Jahre, mit Klimaanlage, vollem Tank und durchgeführter Inspektion."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Модельний ряд Economy", ru: "Модельный ряд Economy", en: "Economy model range", de: "Economy Modellreihe" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Volkswagen Polo — класика міського Economy\nSkoda Fabia — просторий для свого класу\nHyundai i20 — надійний і економний\nRenault Logan — великий багажник для Economy\nDaewoo Nexia — бюджетний варіант для короткого прокату",
-              ru: "Volkswagen Polo — классика городского Economy\nSkoda Fabia — просторный для своего класса\nHyundai i20 — надёжный и экономный\nRenault Logan — большой багажник для Economy\nDaewoo Nexia — бюджетный вариант для короткого проката",
-              en: "Volkswagen Polo — urban Economy classic\nSkoda Fabia — spacious for its class\nHyundai i20 — reliable and economical\nRenault Logan — large boot for Economy\nDaewoo Nexia — budget option for short rentals",
-              de: "Volkswagen Polo — urbaner Economy-Klassiker\nSkoda Fabia — geräumig für seine Klasse\nHyundai i20 — zuverlässig und sparsam\nRenault Logan — großer Kofferraum für Economy\nDaewoo Nexia — Budgetoption für kurze Mieten"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Що включено в кожне авто", ru: "Что включено в каждое авто", en: "What's included with every car", de: "Was in jedem Auto enthalten ist" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Повний бак при видачі\nКондиціонер / клімат-контроль\nБазова страховка ОСЦПВ включена\nАптечка, вогнегасник, знак аварійної зупинки\nЗарядка для телефону USB/USB-C\nДопомога на дорозі 24/7 — безкоштовно\nМожливість повернення в іншому місті",
-              ru: "Полный бак при выдаче\nКондиционер / климат-контроль\nБазовая страховка ОСАГО включена\nАптечка, огнетушитель, знак аварийной остановки\nЗарядка для телефона USB/USB-C\nПомощь на дороге 24/7 — бесплатно\nВозможность возврата в другом городе",
-              en: "Full tank on pickup\nAir conditioning / climate control\nBasic liability insurance included\nFirst aid kit, fire extinguisher, warning triangle\nUSB/USB-C phone charger\n24/7 roadside assistance — free\nOption to return in another city",
-              de: "Voller Tank bei Abholung\nKlimaanlage / Klimakontrolle\nBasis-Haftpflichtversicherung inklusive\nErstehilfekasten, Feuerlöscher, Warndreieck\nUSB/USB-C Telefonladegerät\n24/7 Pannenhilfe — kostenlos\nRückgabemöglichkeit in einer anderen Stadt"
-            }
-          }
-        ]
-      },
-      {
-        type: "heading", align: "left",
-        content: { uk: "Для кого Economy клас підходить найкраще", ru: "Для кого Economy класс подходит лучше всего", en: "Who Economy class suits best", de: "Für wen die Economy-Klasse am besten geeignet ist" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Ділові поїздки коли своє авто в ремонті. Туристи в Києві яким потрібна мобільність без переплати. Молоді пари на вихідну поїздку. Студенти та молоді спеціалісти. Будь-хто кому потрібно просто поїхати — без пафосу, без зайвих витрат.",
-          ru: "Деловые поездки когда своё авто в ремонте. Туристы в Киеве которым нужна мобильность без переплаты. Молодые пары на поездку на выходные. Студенты и молодые специалисты. Все кому нужно просто поехать — без пафоса, без лишних трат.",
-          en: "Business trips when your own car is in the shop. Tourists in Kyiv who need mobility without overpaying. Young couples for a weekend trip. Students and young professionals. Anyone who just needs to get somewhere — no fuss, no extra cost.",
-          de: "Geschäftsreisen wenn das eigene Auto in der Werkstatt ist. Touristen in Kiew die Mobilität ohne Mehrkosten benötigen. Junge Paare für einen Wochenendausflug. Studenten und junge Fachleute. Jeder der einfach irgendwohin muss — ohne Aufhebens, ohne Mehrkosten."
-        }
-      }
-    ]
-  },
-
-  // ── 2. SUV ──────────────────────────────────────────────
-  {
-    slug: "suv-rental",
-    mainImage: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070",
-    title:       { uk: "SUV та кросовери",     ru: "SUV и кроссоверы",       en: "SUVs & Crossovers",      de: "SUVs & Crossover" },
-    subtitle:    { uk: "Toyota RAV4, Hyundai Tucson, Kia Sportage — для сім'ї та бездоріжжя", ru: "Toyota RAV4, Hyundai Tucson, Kia Sportage — для семьи и бездорожья", en: "Toyota RAV4, Hyundai Tucson, Kia Sportage — for family and off-road", de: "Toyota RAV4, Hyundai Tucson, Kia Sportage — für Familie und Gelände" },
-    headerTitle: { uk: "Більше простору. Більше впевненості.", ru: "Больше пространства. Больше уверенности.", en: "More space. More confidence.", de: "Mehr Raum. Mehr Selbstvertrauen." },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "SUV — коли потрібно більше ніж просто доїхати", ru: "SUV — когда нужно больше чем просто доехать", en: "SUV — when you need more than just getting there", de: "SUV — wenn man mehr braucht als nur anzukommen" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "SUV DrivePoint — це про свободу. Сім'я з дітьми і купою багажу. Поїздка в Карпати з великою компанією. Подорож у місця де звичайна легковушка просто не проїде. Або просто хочете сидіти вище за інших на трасі і насолоджуватись видом.",
-          ru: "SUV DrivePoint — это про свободу. Семья с детьми и кучей багажа. Поездка в Карпаты с большой компанией. Путешествие в места где обычная легковушка просто не проедет. Или просто хотите сидеть выше остальных на трассе и наслаждаться видом.",
-          en: "DrivePoint SUV is about freedom. A family with kids and loads of luggage. A trip to the Carpathians with a big group. Travel to places where a regular car simply won't go. Or just want to sit higher than everyone else on the highway and enjoy the view.",
-          de: "DrivePoint SUV handelt von Freiheit. Eine Familie mit Kindern und viel Gepäck. Eine Reise in die Karpaten mit einer großen Gruppe. Reisen zu Orten wo ein normales Auto einfach nicht durchkommt. Oder man möchte einfach höher als alle anderen auf der Autobahn sitzen und die Aussicht genießen."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?q=80&w=2071",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Модельний ряд SUV", ru: "Модельный ряд SUV", en: "SUV model range", de: "SUV-Modellreihe" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Toyota RAV4 (2022–2024) — флагман нашого парку\nHyundai Tucson — стильний та просторий\nKia Sportage — ідеальний баланс ціни та якості\nMazda CX-5 — найкраще водіння серед кросоверів\nNissan Qashqai — компактний SUV для міста і траси\nFord Escape — американська надійність",
-              ru: "Toyota RAV4 (2022–2024) — флагман нашего парка\nHyundai Tucson — стильный и просторный\nKia Sportage — идеальный баланс цены и качества\nMazda CX-5 — лучшее вождение среди кроссоверов\nNissan Qashqai — компактный SUV для города и трассы\nFord Escape — американская надёжность",
-              en: "Toyota RAV4 (2022–2024) — flagship of our fleet\nHyundai Tucson — stylish and spacious\nKia Sportage — ideal price-quality balance\nMazda CX-5 — best driving among crossovers\nNissan Qashqai — compact SUV for city and highway\nFord Escape — American reliability",
-              de: "Toyota RAV4 (2022–2024) — Flaggschiff unserer Flotte\nHyundai Tucson — stilvoll und geräumig\nKia Sportage — ideales Preis-Leistungs-Verhältnis\nMazda CX-5 — bestes Fahrerlebnis unter Crossovern\nNissan Qashqai — kompaktes SUV für Stadt und Autobahn\nFord Escape — amerikanische Zuverlässigkeit"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Чому SUV — правильний вибір для довгих поїздок", ru: "Почему SUV — правильный выбор для длинных поездок", en: "Why SUV is the right choice for long trips", de: "Warum SUV die richtige Wahl für lange Fahrten ist" } },
-          {
-            type: "paragraph", align: "left",
-            content: {
-              uk: "На трасі Київ–Одеса чи Київ–Львів різниця між Economy і SUV — це різниця між «доїхали» і «доїхали з задоволенням». Вищий кліренс, краща підвіска, більше місця для ніг ззаду. Плюс повний привод у деяких моделях для поїздок до Карпат або в бездоріжжя.",
-              ru: "На трассе Киев–Одесса или Киев–Львов разница между Economy и SUV — это разница между «доехали» и «доехали с удовольствием». Более высокий клиренс, лучшая подвеска, больше места для ног сзади. Плюс полный привод в некоторых моделях для поездок в Карпаты или по бездорожью.",
-              en: "On the Kyiv–Odesa or Kyiv–Lviv highway, the difference between Economy and SUV is the difference between 'we got there' and 'we enjoyed getting there'. Higher ground clearance, better suspension, more legroom in the back. Plus all-wheel drive on some models for Carpathian trips or off-road.",
-              de: "Auf der Kyiw–Odessa oder Kyiw–Lwiw-Autobahn ist der Unterschied zwischen Economy und SUV der Unterschied zwischen 'wir sind angekommen' und 'wir haben es genossen anzukommen'. Höhere Bodenfreiheit, bessere Federung, mehr Beinfreiheit hinten. Plus Allradantrieb bei einigen Modellen für Karpaten-Ausflüge oder Gelände."
-            }
-          }
-        ]
-      },
-      {
-        type: "heading", align: "left",
-        content: { uk: "Популярні маршрути на SUV від наших клієнтів", ru: "Популярные маршруты на SUV от наших клиентов", en: "Popular SUV routes from our clients", de: "Beliebte SUV-Routen unserer Kunden" }
-      },
-      {
-        type: "list", align: "left",
-        content: {
-          uk: "Київ → Карпати (Буковель, Яремче) — 6–7 годин\nКиїв → Одеса → узбережжя — 5–6 годин\nКиїв → Умань → Миколаїв → Херсон — 2 дні\nКиїв → Львів → Закарпаття — 2 дні\nКиїв → Чернівці → Хотин → Кам'янець-Подільський — 2 дні",
-          ru: "Киев → Карпаты (Буковель, Яремче) — 6–7 часов\nКиев → Одесса → побережье — 5–6 часов\nКиев → Умань → Николаев → Херсон — 2 дня\nКиев → Львов → Закарпатье — 2 дня\nКиев → Черновцы → Хотин → Каменец-Подольский — 2 дня",
-          en: "Kyiv → Carpathians (Bukovel, Yaremche) — 6–7 hours\nKyiv → Odesa → coast — 5–6 hours\nKyiv → Uman → Mykolaiv → Kherson — 2 days\nKyiv → Lviv → Transcarpathia — 2 days\nKyiv → Chernivtsi → Khotyn → Kamianets-Podilskyi — 2 days",
-          de: "Kiew → Karpaten (Bukovel, Yaremche) — 6–7 Stunden\nKiew → Odessa → Küste — 5–6 Stunden\nKiew → Uman → Mykolaiv → Cherson — 2 Tage\nKiew → Lwiw → Transkarpaten — 2 Tage\nKiew → Czernowitz → Chotyn → Kamjanez-Podilskyj — 2 Tage"
-        }
-      }
-    ]
-  },
-
-  // ── 3. Premium ──────────────────────────────────────────
-  {
-    slug: "premium-cars",
-    mainImage: "https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=2070",
-    title:       { uk: "Premium клас",         ru: "Premium класс",          en: "Premium Class",          de: "Premium-Klasse" },
-    subtitle:    { uk: "BMW 5, Mercedes E-Class, Audi A6 — для статусних поїздок", ru: "BMW 5, Mercedes E-Class, Audi A6 — для статусных поездок", en: "BMW 5, Mercedes E-Class, Audi A6 — for high-status trips", de: "BMW 5, Mercedes E-Class, Audi A6 — für statusbewusste Fahrten" },
-    headerTitle: { uk: "Перший клас на дорозі", ru: "Первый класс на дороге", en: "First class on the road", de: "Erste Klasse auf der Straße" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Premium — коли враження важливі так само як пункт призначення", ru: "Premium — когда впечатления важны так же как пункт назначения", en: "Premium — when the experience matters as much as the destination", de: "Premium — wenn das Erlebnis genauso wichtig ist wie das Ziel" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Ділова зустріч з партнерами з-за кордону. Весілля або ювілей. Зустріч дорогого гостя в аеропорту. Поїздка куди треба приїхати і справити враження ще до того як зайшов у двері — Premium клас DrivePoint для цього і існує.",
-          ru: "Деловая встреча с партнёрами из-за рубежа. Свадьба или юбилей. Встреча дорогого гостя в аэропорту. Поездка куда нужно приехать и произвести впечатление ещё до того как зашёл в дверь — Premium класс DrivePoint для этого и существует.",
-          en: "A business meeting with overseas partners. A wedding or anniversary. Meeting an important guest at the airport. A trip where you need to arrive and make an impression before even walking through the door — that's what DrivePoint Premium class exists for.",
-          de: "Ein Geschäftstreffen mit ausländischen Partnern. Eine Hochzeit oder ein Jubiläum. Einen wichtigen Gast am Flughafen abholen. Eine Reise wo man ankommen und einen Eindruck hinterlassen muss noch bevor man durch die Tür geht — dafür gibt es die DrivePoint Premium-Klasse."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Модельний ряд Premium", ru: "Модельный ряд Premium", en: "Premium model range", de: "Premium-Modellreihe" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "BMW 5 Series (F90, 2021–2024) — баварський перфекціонізм\nMercedes-Benz E-Class (W213) — символ статусу\nAudi A6 (C8) — технологічний лідер класу\nLexus ES — японська якість у бізнес-тілі\nVolvo S90 — скандинавський мінімалізм і безпека",
-              ru: "BMW 5 Series (F90, 2021–2024) — баварский перфекционизм\nMercedes-Benz E-Class (W213) — символ статуса\nAudi A6 (C8) — технологический лидер класса\nLexus ES — японское качество в бизнес-теле\nVolvo S90 — скандинавский минимализм и безопасность",
-              en: "BMW 5 Series (F90, 2021–2024) — Bavarian perfectionism\nMercedes-Benz E-Class (W213) — symbol of status\nAudi A6 (C8) — class's technology leader\nLexus ES — Japanese quality in a business body\nVolvo S90 — Scandinavian minimalism and safety",
-              de: "BMW 5 Series (F90, 2021–2024) — bayerischer Perfektionismus\nMercedes-Benz E-Class (W213) — Symbol des Status\nAudi A6 (C8) — Technologieführer der Klasse\nLexus ES — japanische Qualität in einem Business-Körper\nVolvo S90 — skandinavischer Minimalismus und Sicherheit"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?q=80&w=2074",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Premium сервіс включений", ru: "Premium сервис включён", en: "Premium service included", de: "Premium-Service inklusive" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Авто подається чистим і відполірованим\nАроматизатор та освіжувач повітря в салоні\nВода та дрібні снеки на борту за запитом\nВодій у костюмі за доплатою\nОформлення з доставкою в готель або офіс\nЗнижена застава при наявності золотої/платинової картки\nПріоритетна заміна при будь-якій несправності",
-              ru: "Авто подаётся чистым и отполированным\nАроматизатор и освежитель воздуха в салоне\nВода и мелкие снеки на борту по запросу\nВодитель в костюме за доплату\nОформление с доставкой в отель или офис\nСниженный залог при наличии золотой/платиновой карты\nПриоритетная замена при любой неисправности",
-              en: "Car delivered clean and polished\nAir freshener and fragrance in the cabin\nWater and small snacks on board on request\nSuited driver for an extra fee\nPickup with delivery to hotel or office\nReduced deposit with gold/platinum card\nPriority replacement for any malfunction",
-              de: "Auto sauber und poliert geliefert\nLufterfrischer und Duft im Innenraum\nWasser und kleine Snacks an Bord auf Anfrage\nFahrer im Anzug gegen Aufpreis\nAbholung mit Lieferung ins Hotel oder Büro\nReduzierte Kaution mit Gold-/Platinkarte\nPrioritätsersatz bei jeder Fehlfunktion"
-            }
-          }
-        ]
-      }
-    ]
-  },
-
-  // ── 4. Мінівени ─────────────────────────────────────────
-  {
-    slug: "minivans",
-    mainImage: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069",
-    title:       { uk: "Мінівени та мікроавтобуси", ru: "Минивэны и микроавтобусы", en: "Minivans & Minibuses",      de: "Minivans & Kleinbusse" },
-    subtitle:    { uk: "Mercedes Vito, Volkswagen Caravelle — для великих компаній та трансферів", ru: "Mercedes Vito, Volkswagen Caravelle — для больших компаний и трансферов", en: "Mercedes Vito, Volkswagen Caravelle — for large groups and transfers", de: "Mercedes Vito, Volkswagen Caravelle — für große Gruppen und Transfers" },
-    headerTitle: { uk: "Всі разом — на одному авто", ru: "Все вместе — на одном авто", en: "Everyone together — one vehicle", de: "Alle zusammen — ein Fahrzeug" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "7–9 місць, великий багажник і жодного «хто їде окремо»", ru: "7–9 мест, большой багажник и никакого «кто едет отдельно»", en: "7–9 seats, large luggage space and no 'who rides separately'", de: "7–9 Sitze, großer Kofferraum und kein 'wer fährt separat'" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Корпоративний трансфер команди до аеропорту. Сімейна поїздка з дітьми, колясками та валізами. Туристична група яка хоче їхати разом. Весілля де потрібно забрати та розвезти гостей. Мінівени DrivePoint — коли одного авто недостатньо і двох забагато.",
-          ru: "Корпоративный трансфер команды до аэропорта. Семейная поездка с детьми, колясками и чемоданами. Туристическая группа которая хочет ехать вместе. Свадьба где нужно забрать и развезти гостей. Минивэны DrivePoint — когда одного авто недостаточно и двух слишком много.",
-          en: "Corporate team transfer to the airport. A family trip with children, prams and suitcases. A tourist group that wants to travel together. A wedding where guests need to be collected and dropped off. DrivePoint minivans — when one car isn't enough and two is too many.",
-          de: "Unternehmenstransfer des Teams zum Flughafen. Ein Familienausflug mit Kindern, Kinderwagen und Koffern. Eine Touristengruppe die zusammen reisen möchte. Eine Hochzeit bei der Gäste abgeholt und gebracht werden müssen. DrivePoint Minivans — wenn ein Auto nicht reicht und zwei zu viele sind."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Наш парк мінівенів", ru: "Наш парк минивэнов", en: "Our minivan fleet", de: "Unser Minivanpark" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Mercedes-Benz Vito 7+1 — бізнес-трансфер преміум\nVolkswagen Caravelle T6 — комфорт для 9 осіб\nFord Tourneo Custom — просторий і доступний\nRenault Trafic — відмінна вантажомісткість\nOpel Vivaro — міський мінівен\nMercedes-Benz Sprinter 12 міс. — для великих груп",
-              ru: "Mercedes-Benz Vito 7+1 — бизнес-трансфер премиум\nVolkswagen Caravelle T6 — комфорт для 9 человек\nFord Tourneo Custom — просторный и доступный\nRenault Trafic — отличная грузовместимость\nOpel Vivaro — городской минивэн\nMercedes-Benz Sprinter 12 мест — для больших групп",
-              en: "Mercedes-Benz Vito 7+1 — premium business transfer\nVolkswagen Caravelle T6 — comfort for 9 people\nFord Tourneo Custom — spacious and affordable\nRenault Trafic — excellent cargo capacity\nOpel Vivaro — city minivan\nMercedes-Benz Sprinter 12 seats — for large groups",
-              de: "Mercedes-Benz Vito 7+1 — Premium Business-Transfer\nVolkswagen Caravelle T6 — Komfort für 9 Personen\nFord Tourneo Custom — geräumig und erschwinglich\nRenault Trafic — ausgezeichnete Nutzlast\nOpel Vivaro — Stadtminivan\nMercedes-Benz Sprinter 12 Sitze — für große Gruppen"
-            }
-          }
-        ]
-      }
-    ]
-  },
-
-  // ── 5. Сервіс з водієм ───────────────────────────────────
-  {
-    slug: "driver-service",
-    mainImage: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070",
-    title:       { uk: "Послуга водія",         ru: "Услуга водителя",         en: "Driver Service",          de: "Fahrerdienst" },
-    subtitle:    { uk: "Ви відпочиваєте — наш водій за кермом", ru: "Вы отдыхаете — наш водитель за рулём", en: "You relax — our driver is at the wheel", de: "Sie entspannen — unser Fahrer ist am Steuer" },
-    headerTitle: { uk: "Персональний водій без покупки авто", ru: "Персональный водитель без покупки авто", en: "Personal driver without buying a car", de: "Persönlicher Fahrer ohne Autokauf" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Наш водій — не таксист. Це ваш тимчасовий особистий шофер", ru: "Наш водитель — не таксист. Это ваш временный личный шофёр", en: "Our driver is not a taxi driver. They are your temporary personal chauffeur", de: "Unser Fahrer ist kein Taxifahrer. Er ist Ihr vorübergehender persönlicher Chauffeur" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Різниця між таксі і нашою послугою водія — колосальна. Таксі забрало і зникло. Наш водій приїжджає о 8 ранку і залишається з вами весь день. Чекає поки ви на зустрічі. Везе на наступну. Забирає з вечірки о 2 ночі без питань і без сюрпризів з ціною.",
-          ru: "Разница между такси и нашей услугой водителя — колоссальная. Такси забрало и исчезло. Наш водитель приезжает в 8 утра и остаётся с вами весь день. Ждёт пока вы на встрече. Везёт на следующую. Забирает с вечеринки в 2 ночи без вопросов и без сюрпризов с ценой.",
-          en: "The difference between a taxi and our driver service is enormous. A taxi picks you up and disappears. Our driver arrives at 8am and stays with you all day. Waits while you're in a meeting. Takes you to the next one. Picks you up from a party at 2am with no questions and no price surprises.",
-          de: "Der Unterschied zwischen einem Taxi und unserem Fahrerdienst ist enorm. Ein Taxi holt Sie ab und verschwindet. Unser Fahrer kommt um 8 Uhr morgens und bleibt den ganzen Tag bei Ihnen. Wartet während Sie in einem Meeting sind. Fährt Sie zum nächsten. Holt Sie um 2 Uhr nachts von einer Party ab ohne Fragen und ohne Preisüberraschungen."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Хто наші водії", ru: "Кто наши водители", en: "Who our drivers are", de: "Wer unsere Fahrer sind" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Стаж від 7 років на представницьких авто\nЩорічне психологічне тестування\nКурс захисного та безпечного водіння\nЗнання Києва та основних міжміських маршрутів\nКонфіденційність — підписують NDA\nАнгломовні водії за запитом\nКостюм та бездоганний зовнішній вигляд",
-              ru: "Стаж от 7 лет на представительских авто\nЕжегодное психологическое тестирование\nКурс защитного и безопасного вождения\nЗнание Киева и основных межгородских маршрутов\nКонфиденциальность — подписывают NDA\nАнглоязычные водители по запросу\nКостюм и безупречный внешний вид",
-              en: "7+ years experience with executive vehicles\nAnnual psychological testing\nDefensive and safe driving course\nKnowledge of Kyiv and main intercity routes\nConfidentiality — they sign an NDA\nEnglish-speaking drivers on request\nSuit and impeccable appearance",
-              de: "7+ Jahre Erfahrung mit Repräsentationsfahrzeugen\nJährliche psychologische Tests\nDefensiv- und Sicherheitsfahrkurs\nKenntnis von Kiew und Hauptfernstrecken\nVertraulichkeit — sie unterzeichnen ein NDA\nEnglischsprachige Fahrer auf Anfrage\nAnzug und makelloses Erscheinungsbild"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Коли замовляють послугу водія", ru: "Когда заказывают услугу водителя", en: "When to book the driver service", de: "Wann man den Fahrerdienst bucht" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Зустріч іноземних партнерів або делегацій\nДіловий день з кількома зустрічами підряд\nАеропорт туди-назад + очікування\nВесілля — від завтра до фінального банкету\nКорпоратив або вечірка де плануєте пити\nДовга поїздка в інше місто де не хочеться самому вести",
-              ru: "Встреча иностранных партнёров или делегаций\nДеловой день с несколькими встречами подряд\nАэропорт туда-обратно + ожидание\nСвадьба — от завтра до финального банкета\nКорпоратив или вечеринка где планируете выпить\nДлинная поездка в другой город где не хочется самому вести",
-              en: "Meeting foreign partners or delegations\nA business day with several back-to-back meetings\nAirport return + waiting\nWedding — from the morning to the final banquet\nCompany event or party where you plan to drink\nA long trip to another city where you don't want to drive",
-              de: "Treffen ausländischer Partner oder Delegationen\nEin Geschäftstag mit mehreren aufeinanderfolgenden Meetings\nFlughafen hin und zurück + Wartezeit\nHochzeit — vom Morgen bis zum Abschlussbankett\nFirmenveranstaltung oder Party bei der man trinken will\nEine lange Fahrt in eine andere Stadt bei der man nicht selbst fahren möchte"
-            }
-          }
-        ]
-      }
-    ]
-  },
-
-  // ── 6. Аеропортний трансфер ──────────────────────────────
-  {
-    slug: "airport-transfer",
-    mainImage: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074",
-    title:       { uk: "Аеропортні трансфери",  ru: "Аэропортные трансферы",   en: "Airport Transfers",       de: "Flughafentransfers" },
-    subtitle:    { uk: "Бориспіль, Жуляни, Київ-пасажирський — вчасно і без нервів", ru: "Борисполь, Жуляны, Киев-пассажирский — вовремя и без нервов", en: "Boryspil, Zhuliany, Kyiv station — on time, stress-free", de: "Boryspil, Zhuliany, Bahnhof Kyiv — pünktlich und stressfrei" },
-    headerTitle: { uk: "Ми стежимо за вашим рейсом — ви дивитесь у вікно", ru: "Мы следим за вашим рейсом — вы смотрите в окно", en: "We track your flight — you look out the window", de: "Wir verfolgen Ihren Flug — Sie schauen aus dem Fenster" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Як це працює: рейс на 6:40 — водій о 4:30 вже біля під'їзду", ru: "Как это работает: рейс в 6:40 — водитель в 4:30 уже у подъезда", en: "How it works: flight at 6:40 — driver at 4:30 already at your door", de: "Wie es funktioniert: Flug um 6:40 — Fahrer um 4:30 bereits vor der Tür" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Ми отримуємо номер вашого рейсу і моніторимо його статус у реальному часі. Якщо рейс затримується на 2 години — ваш водій приїде на 2 години пізніше. Жодних доплат за очікування до 60 хвилин після посадки. Зустріч з табличкою у залі прильотів.",
-          ru: "Мы получаем номер вашего рейса и мониторим его статус в реальном времени. Если рейс задерживается на 2 часа — ваш водитель приедет на 2 часа позже. Никаких доплат за ожидание до 60 минут после посадки. Встреча с табличкой в зале прилётов.",
-          en: "We receive your flight number and monitor its status in real time. If the flight is delayed by 2 hours — your driver arrives 2 hours later. No extra charges for waiting up to 60 minutes after landing. Meeting with a name sign in the arrivals hall.",
-          de: "Wir erhalten Ihre Flugnummer und überwachen den Status in Echtzeit. Wenn der Flug 2 Stunden Verspätung hat — kommt Ihr Fahrer 2 Stunden später. Keine Aufschläge für Wartezeit bis zu 60 Minuten nach der Landung. Empfang mit Namenstafel in der Ankunftshalle."
-        }
-      },
-      {
-        type: "image", align: "center",
-        media: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?q=80&w=1974",
-        widthPercent: 88,
-        children: [
-          { type: "heading", align: "center", content: { uk: "Напрямки та тарифи аеропортних трансферів", ru: "Направления и тарифы аэропортных трансферов", en: "Airport transfer directions and rates", de: "Richtungen und Tarife für Flughafentransfers" } },
-          {
-            type: "list", align: "center",
-            content: {
-              uk: "Бориспіль ↔ Київ (Economy) — від 600 грн / $15\nБориспіль ↔ Київ (Premium) — від 2 000 грн / $50\nЖуляни ↔ Київ (Economy) — від 350 грн / $9\nКиїв-пасажирський ↔ Готель — від 250 грн / $6\nБориспіль ↔ Бориспіль (пересадка) — від 400 грн\nКиїв → Харків / Одеса / Львів (трансфер) — уточнюйте",
-              ru: "Борисполь ↔ Киев (Economy) — от 600 грн / $15\nБорисполь ↔ Киев (Premium) — от 2 000 грн / $50\nЖуляны ↔ Киев (Economy) — от 350 грн / $9\nКиев-пассажирский ↔ Отель — от 250 грн / $6\nБорисполь ↔ Борисполь (пересадка) — от 400 грн\nКиев → Харьков / Одесса / Львов (трансфер) — уточняйте",
-              en: "Boryspil ↔ Kyiv (Economy) — from ₴600 / $15\nBoryspil ↔ Kyiv (Premium) — from ₴2,000 / $50\nZhuliany ↔ Kyiv (Economy) — from ₴350 / $9\nKyiv station ↔ Hotel — from ₴250 / $6\nBoryspil ↔ Boryspil (connecting) — from ₴400\nKyiv → Kharkiv / Odesa / Lviv (transfer) — ask for quote",
-              de: "Boryspil ↔ Kiew (Economy) — ab 600 UAH / $15\nBoryspil ↔ Kiew (Premium) — ab 2.000 UAH / $50\nZhuliany ↔ Kiew (Economy) — ab 350 UAH / $9\nBahnhof Kiew ↔ Hotel — ab 250 UAH / $6\nBoryspil ↔ Boryspil (Umsteigen) — ab 400 UAH\nKiew → Charkiw / Odessa / Lwiw (Transfer) — Angebot anfragen"
-            }
-          }
-        ]
-      }
-    ]
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// PRICES
-// ═══════════════════════════════════════════════════════════
-const prices: Omit<PriceModel, "id">[] = [
-  {
-    category: { uk: "Оренда автомобілів / доба", ru: "Аренда автомобилей / сутки", en: "Car Rental / per day", de: "Autovermietung / pro Tag" },
-    columns: {
-      duration: { uk: "Термін", ru: "Срок", en: "Duration", de: "Dauer" },
-      procedure: { uk: "Клас / Модель", ru: "Класс / Модель", en: "Class / Model", de: "Klasse / Modell" },
-      price: { uk: "Вартість / доба", ru: "Стоимость / сутки", en: "Rate / day", de: "Preis / Tag" }
-    },
-    sections: [
-      {
-        subtitle: { uk: "Economy клас", ru: "Economy класс", en: "Economy class", de: "Economy-Klasse" },
-        items: [
-          { duration: { uk: "1–2 доби", ru: "1–2 суток", en: "1–2 days", de: "1–2 Tage" }, procedure: { uk: "VW Polo / Skoda Fabia", ru: "VW Polo / Skoda Fabia", en: "VW Polo / Skoda Fabia", de: "VW Polo / Skoda Fabia" }, price: { uk: "від 1 200 грн", ru: "от 1 200 грн", en: "from $30", de: "ab $30" } },
-          { duration: { uk: "3–6 діб", ru: "3–6 суток", en: "3–6 days", de: "3–6 Tage" }, procedure: { uk: "VW Polo / Skoda Fabia", ru: "VW Polo / Skoda Fabia", en: "VW Polo / Skoda Fabia", de: "VW Polo / Skoda Fabia" }, price: { uk: "від 900 грн", ru: "от 900 грн", en: "from $22", de: "ab $22" } },
-          { duration: { uk: "7+ діб", ru: "7+ суток", en: "7+ days", de: "7+ Tage" }, procedure: { uk: "VW Polo / Skoda Fabia", ru: "VW Polo / Skoda Fabia", en: "VW Polo / Skoda Fabia", de: "VW Polo / Skoda Fabia" }, price: { uk: "від 700 грн", ru: "от 700 грн", en: "from $17", de: "ab $17" } }
-        ]
-      },
-      {
-        subtitle: { uk: "Comfort клас", ru: "Comfort класс", en: "Comfort class", de: "Comfort-Klasse" },
-        items: [
-          { duration: { uk: "1–2 доби", ru: "1–2 суток", en: "1–2 days", de: "1–2 Tage" }, procedure: { uk: "Toyota Corolla / Mazda 3", ru: "Toyota Corolla / Mazda 3", en: "Toyota Corolla / Mazda 3", de: "Toyota Corolla / Mazda 3" }, price: { uk: "від 1 800 грн", ru: "от 1 800 грн", en: "from $45", de: "ab $45" } },
-          { duration: { uk: "7+ діб", ru: "7+ суток", en: "7+ days", de: "7+ Tage" }, procedure: { uk: "Toyota Corolla / Mazda 3", ru: "Toyota Corolla / Mazda 3", en: "Toyota Corolla / Mazda 3", de: "Toyota Corolla / Mazda 3" }, price: { uk: "від 1 350 грн", ru: "от 1 350 грн", en: "from $34", de: "ab $34" } }
-        ]
-      },
-      {
-        subtitle: { uk: "SUV клас", ru: "SUV класс", en: "SUV class", de: "SUV-Klasse" },
-        items: [
-          { duration: { uk: "1–2 доби", ru: "1–2 суток", en: "1–2 days", de: "1–2 Tage" }, procedure: { uk: "Toyota RAV4 / Hyundai Tucson", ru: "Toyota RAV4 / Hyundai Tucson", en: "Toyota RAV4 / Hyundai Tucson", de: "Toyota RAV4 / Hyundai Tucson" }, price: { uk: "від 3 200 грн", ru: "от 3 200 грн", en: "from $80", de: "ab $80" } },
-          { duration: { uk: "7+ діб", ru: "7+ суток", en: "7+ days", de: "7+ Tage" }, procedure: { uk: "Toyota RAV4 / Hyundai Tucson", ru: "Toyota RAV4 / Hyundai Tucson", en: "Toyota RAV4 / Hyundai Tucson", de: "Toyota RAV4 / Hyundai Tucson" }, price: { uk: "від 2 400 грн", ru: "от 2 400 грн", en: "from $60", de: "ab $60" } }
-        ]
-      },
-      {
-        subtitle: { uk: "Premium клас", ru: "Premium класс", en: "Premium class", de: "Premium-Klasse" },
-        items: [
-          { duration: { uk: "1–2 доби", ru: "1–2 суток", en: "1–2 days", de: "1–2 Tage" }, procedure: { uk: "BMW 5 / Mercedes E-Class", ru: "BMW 5 / Mercedes E-Class", en: "BMW 5 / Mercedes E-Class", de: "BMW 5 / Mercedes E-Class" }, price: { uk: "від 5 600 грн", ru: "от 5 600 грн", en: "from $140", de: "ab $140" } },
-          { duration: { uk: "7+ діб", ru: "7+ суток", en: "7+ days", de: "7+ Tage" }, procedure: { uk: "BMW 5 / Mercedes E-Class", ru: "BMW 5 / Mercedes E-Class", en: "BMW 5 / Mercedes E-Class", de: "BMW 5 / Mercedes E-Class" }, price: { uk: "від 4 400 грн", ru: "от 4 400 грн", en: "from $110", de: "ab $110" } }
-        ]
-      },
-      {
-        subtitle: { uk: "Мінівени", ru: "Минивэны", en: "Minivans", de: "Minivans" },
-        items: [
-          { duration: { uk: "1–2 доби", ru: "1–2 суток", en: "1–2 days", de: "1–2 Tage" }, procedure: { uk: "Mercedes Vito / VW Caravelle (7–9 міс.)", ru: "Mercedes Vito / VW Caravelle (7–9 мест)", en: "Mercedes Vito / VW Caravelle (7–9 seats)", de: "Mercedes Vito / VW Caravelle (7–9 Sitze)" }, price: { uk: "від 4 400 грн", ru: "от 4 400 грн", en: "from $110", de: "ab $110" } }
-        ]
-      }
-    ]
-  },
-  {
-    category: { uk: "Послуга водія та трансфери", ru: "Услуга водителя и трансферы", en: "Driver Service & Transfers", de: "Fahrerdienst & Transfers" },
-    columns: {
-      duration: { uk: "Формат", ru: "Формат", en: "Format", de: "Format" },
-      procedure: { uk: "Послуга", ru: "Услуга", en: "Service", de: "Leistung" },
-      price: { uk: "Вартість", ru: "Стоимость", en: "Price", de: "Preis" }
-    },
-    sections: [
-      {
-        subtitle: { uk: "Особистий водій", ru: "Личный водитель", en: "Personal driver", de: "Persönlicher Fahrer" },
-        items: [
-          { duration: { uk: "2 год", ru: "2 ч", en: "2 hrs", de: "2 Std" }, procedure: { uk: "Водій + Comfort авто", ru: "Водитель + Comfort авто", en: "Driver + Comfort car", de: "Fahrer + Comfort Auto" }, price: { uk: "від 1 600 грн", ru: "от 1 600 грн", en: "from $40", de: "ab $40" } },
-          { duration: { uk: "4 год", ru: "4 ч", en: "4 hrs", de: "4 Std" }, procedure: { uk: "Водій + Comfort авто", ru: "Водитель + Comfort авто", en: "Driver + Comfort car", de: "Fahrer + Comfort Auto" }, price: { uk: "від 2 800 грн", ru: "от 2 800 грн", en: "from $70", de: "ab $70" } },
-          { duration: { uk: "8 год (день)", ru: "8 ч (день)", en: "8 hrs (day)", de: "8 Std (Tag)" }, procedure: { uk: "Водій + Comfort авто", ru: "Водитель + Comfort авто", en: "Driver + Comfort car", de: "Fahrer + Comfort Auto" }, price: { uk: "від 4 800 грн", ru: "от 4 800 грн", en: "from $120", de: "ab $120" } },
-          { duration: { uk: "8 год (день)", ru: "8 ч (день)", en: "8 hrs (day)", de: "8 Std (Tag)" }, procedure: { uk: "Водій + Premium авто", ru: "Водитель + Premium авто", en: "Driver + Premium car", de: "Fahrer + Premium Auto" }, price: { uk: "від 8 800 грн", ru: "от 8 800 грн", en: "from $220", de: "ab $220" } }
-        ]
-      },
-      {
-        subtitle: { uk: "Аеропортні трансфери", ru: "Аэропортные трансферы", en: "Airport transfers", de: "Flughafentransfers" },
-        items: [
-          { duration: { uk: "Один бік", ru: "В одну сторону", en: "One way", de: "Einfache Fahrt" }, procedure: { uk: "Бориспіль ↔ Київ, Economy", ru: "Борисполь ↔ Киев, Economy", en: "Boryspil ↔ Kyiv, Economy", de: "Boryspil ↔ Kiew, Economy" }, price: { uk: "від 600 грн", ru: "от 600 грн", en: "from $15", de: "ab $15" } },
-          { duration: { uk: "Один бік", ru: "В одну сторону", en: "One way", de: "Einfache Fahrt" }, procedure: { uk: "Бориспіль ↔ Київ, Premium", ru: "Борисполь ↔ Киев, Premium", en: "Boryspil ↔ Kyiv, Premium", de: "Boryspil ↔ Kiew, Premium" }, price: { uk: "від 2 000 грн", ru: "от 2 000 грн", en: "from $50", de: "ab $50" } },
-          { duration: { uk: "Один бік", ru: "В одну сторону", en: "One way", de: "Einfache Fahrt" }, procedure: { uk: "Жуляни / Вокзал ↔ Готель", ru: "Жуляны / Вокзал ↔ Отель", en: "Zhuliany / Station ↔ Hotel", de: "Zhuliany / Bahnhof ↔ Hotel" }, price: { uk: "від 350 грн", ru: "от 350 грн", en: "from $9", de: "ab $9" } }
-        ]
-      }
-    ]
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// EMPLOYEES
-// ═══════════════════════════════════════════════════════════
-const employees: Omit<Employee, "id">[] = [
-  {
-    slug: "serhii-bondarenko",
-    photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=687",
-    fullName:  { uk: "Сергій Бондаренко", ru: "Сергей Бондаренко", en: "Serhii Bondarenko", de: "Serhii Bondarenko" },
-    shortName: { uk: "С. Бондаренко",     ru: "С. Бондаренко",     en: "S. Bondarenko",     de: "S. Bondarenko" },
-    position:  { uk: "Старший водій VIP-класу", ru: "Старший водитель VIP-класса", en: "Senior VIP Driver", de: "Senior VIP-Fahrer" },
-    specializations: [
-      { uk: "BMW 7, Mercedes S-Class — VIP-перевезення", ru: "BMW 7, Mercedes S-Class — VIP-перевозки", en: "BMW 7, Mercedes S-Class — VIP transfers", de: "BMW 7, Mercedes S-Class — VIP-Transfers" },
-      { uk: "Зустріч делегацій та іноземних партнерів", ru: "Встреча делегаций и иностранных партнёров", en: "Meeting delegations and foreign partners", de: "Empfang von Delegationen und ausländischen Partnern" },
-      { uk: "Захисне водіння та курс екстремального керування", ru: "Защитное вождение и курс экстремального управления", en: "Defensive driving and emergency vehicle control", de: "Defensiv- und Notfallfahrzeugsteuerung" }
-    ],
-    education: [
-      { uk: "Автомобільний коледж, Київ — Технічне обслуговування (2003)", ru: "Автомобильный колледж, Киев — Техническое обслуживание (2003)", en: "Automotive College, Kyiv — Vehicle Maintenance (2003)", de: "Kfz-College, Kiew — Fahrzeugwartung (2003)" }
-    ],
-    certificates: [
-      "BMW Driving Experience — Professional Level (2018)",
-      "Defensive Driving Certificate — IAM RoadSmart UK (2019)",
-      "Категорія B, C, D, E — 20 років без ДТП"
-    ]
-  },
-  {
-    slug: "oleksandra-kravets",
-    photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=688",
-    fullName:  { uk: "Олександра Кравець", ru: "Александра Кравец", en: "Oleksandra Kravets", de: "Oleksandra Kravets" },
-    shortName: { uk: "О. Кравець",         ru: "А. Кравец",         en: "O. Kravets",         de: "O. Kravets" },
-    position:  { uk: "Менеджер з бронювань та обслуговування клієнтів", ru: "Менеджер по бронированиям и обслуживанию клиентов", en: "Bookings & Customer Service Manager", de: "Buchungs- & Kundendienst-Managerin" },
-    specializations: [
-      { uk: "Корпоративні договори та флотова оренда", ru: "Корпоративные договоры и флотовая аренда", en: "Corporate contracts and fleet rental", de: "Unternehmensverträge und Flottenmiete" },
-      { uk: "Клієнтська комунікація: uk/ru/en", ru: "Клиентская коммуникация: uk/ru/en", en: "Client communication: uk/ru/en", de: "Kundenkommunikation: uk/ru/en" },
-      { uk: "Диспетчеризація та координація водіїв", ru: "Диспетчеризация и координация водителей", en: "Dispatching and driver coordination", de: "Disposition und Fahrerkoordination" }
-    ],
-    education: [
-      { uk: "КНЕУ — Менеджмент та маркетинг у сфері послуг (2014)", ru: "КНЕУ — Менеджмент и маркетинг в сфере услуг (2014)", en: "KNEU — Service Management and Marketing (2014)", de: "KNEU — Dienstleistungsmanagement und Marketing (2014)" }
-    ],
-    certificates: [
-      "Customer Experience Excellence — Coursera (2021)",
-      "CRM: Bitrix24 Advanced User (2022)",
-      "Ділова англійська C1 — EF Certificate (2020)"
-    ]
-  },
-  {
-    slug: "vasyl-melnyk",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=687",
-    fullName:  { uk: "Василь Мельник",     ru: "Василий Мельник",    en: "Vasyl Melnyk",     de: "Vasyl Melnyk" },
-    shortName: { uk: "В. Мельник",         ru: "В. Мельник",         en: "V. Melnyk",        de: "V. Melnyk" },
-    position:  { uk: "Головний механік автопарку", ru: "Главный механик автопарка", en: "Head Fleet Mechanic", de: "Chefmechaniker des Fuhrparks" },
-    specializations: [
-      { uk: "Діагностика та ТО японської, корейської та німецької техніки", ru: "Диагностика и ТО японской, корейской и немецкой техники", en: "Diagnostics and service of Japanese, Korean and German vehicles", de: "Diagnose und Wartung japanischer, koreanischer und deutscher Fahrzeuge" },
-      { uk: "Підготовка авто до видачі: чистка, перевірка, заправка", ru: "Подготовка авто к выдаче: чистка, проверка, заправка", en: "Car preparation for handover: cleaning, inspection, fuelling", de: "Fahrzeugvorbereitung für die Übergabe: Reinigung, Inspektion, Betanken" },
-      { uk: "Шиномонтаж та сезонне обслуговування", ru: "Шиномонтаж и сезонное обслуживание", en: "Tyre service and seasonal maintenance", de: "Reifendienst und Saisonwartung" }
-    ],
-    education: [
-      { uk: "Київський політехнічний коледж — Автомеханік (2006)", ru: "Киевский политехнический колледж — Автомеханик (2006)", en: "Kyiv Polytechnic College — Automotive Mechanic (2006)", de: "Kiewer Polytechnisches College — Kfz-Mechaniker (2006)" }
-    ],
-    certificates: [
-      "Toyota Certified Technician — Toyota Academy (2012)",
-      "BMW Group Technician Certification (2016)",
-      "Bosch Automotive Diagnostics Professional (2019)"
-    ]
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// FAQs
-// ═══════════════════════════════════════════════════════════
-const faqs: Omit<FAQ, "id">[] = [
-  {
-    question: { uk: "Які документи потрібні для оренди?", ru: "Какие документы нужны для аренды?", en: "What documents do I need to rent?", de: "Welche Dokumente brauche ich für die Miete?" },
-    answer: { uk: "Паспорт або ID-карта + посвідчення водія категорії B (мінімум 2 роки стажу). Іноземцям — закордонний паспорт + міжнародне посвідчення водія IDP. Вік водія — від 21 року. Для Premium та SUV — від 23 років.", ru: "Паспорт или ID-карта + водительские права категории B (минимум 2 года стажа). Иностранцам — загранпаспорт + международные права IDP. Возраст водителя — от 21 года. Для Premium и SUV — от 23 лет.", en: "Passport or ID card + category B driving licence (minimum 2 years). Foreigners — international passport + international driving permit IDP. Driver age — from 21. For Premium and SUV — from 23.", de: "Reisepass oder Personalausweis + Führerschein Klasse B (mindestens 2 Jahre). Ausländer — Reisepass + internationaler Führerschein IDP. Fahrealter — ab 21. Für Premium und SUV — ab 23." }
-  },
-  {
-    question: { uk: "Чи потрібна застава?", ru: "Нужен ли залог?", en: "Is a deposit required?", de: "Ist eine Kaution erforderlich?" },
-    answer: { uk: "При оплаті кредитною карткою Visa/Mastercard/Amex ми блокуємо суму застави (не списуємо). Після повернення авто без пошкоджень — розблокування протягом 1–3 робочих днів. Без картки — готівковий депозит. Сума застави: Economy €150, Comfort €250, SUV €400, Premium €800.", ru: "При оплате кредитной картой Visa/Mastercard/Amex мы блокируем сумму залога (не списываем). После возврата авто без повреждений — разблокирование в течение 1–3 рабочих дней. Без карты — наличный депозит. Сумма залога: Economy €150, Comfort €250, SUV €400, Premium €800.", en: "With a Visa/Mastercard/Amex credit card we block the deposit amount (don't charge it). After returning the car without damage — unblocked within 1–3 business days. Without a card — cash deposit. Deposit amounts: Economy €150, Comfort €250, SUV €400, Premium €800.", de: "Mit einer Visa/Mastercard/Amex-Kreditkarte sperren wir den Kautionsbetrag (belasten ihn nicht). Nach Rückgabe ohne Schäden — Entsperrung innerhalb 1–3 Werktagen. Ohne Karte — Barkaution. Kautionsbeträge: Economy €150, Comfort €250, SUV €400, Premium €800." }
-  },
-  {
-    question: { uk: "Чи можна повернути авто в іншому місті?", ru: "Можно ли вернуть авто в другом городе?", en: "Can I return the car in a different city?", de: "Kann ich das Auto in einer anderen Stadt zurückgeben?" },
-    answer: { uk: "Так, one-way оренда доступна між нашими точками: Київ, Одеса, Харків, Дніпро, Львів. Вартість one-way відрізняється залежно від відстані та класу авто. Уточнюйте при бронюванні — менеджер розрахує фінальну ціну.", ru: "Да, one-way аренда доступна между нашими точками: Киев, Одесса, Харьков, Днепр, Львов. Стоимость one-way отличается в зависимости от расстояния и класса авто. Уточняйте при бронировании — менеджер рассчитает финальную цену.", en: "Yes, one-way rental is available between our locations: Kyiv, Odesa, Kharkiv, Dnipro, Lviv. One-way costs vary depending on distance and vehicle class. Ask at booking — the manager will calculate the final price.", de: "Ja, Einweg-Miete ist zwischen unseren Standorten verfügbar: Kiew, Odessa, Charkiw, Dnipro, Lwiw. Einwegkosten variieren je nach Entfernung und Fahrzeugklasse. Fragen Sie bei der Buchung — der Manager berechnet den Endpreis." }
-  },
-  {
-    question: { uk: "Що якщо авто зламалось під час оренди?", ru: "Что если авто сломалось во время аренды?", en: "What if the car breaks down during the rental?", de: "Was wenn das Auto während der Miete eine Panne hat?" },
-    answer: { uk: "Дзвоніть на гарячу лінію 24/7: +38 (044) 400-66-88. Якщо поломка сталась не з вашої вини — безкоштовна заміна авто протягом 60 хвилин у межах міста. За містом — технічна допомога або евакуатор. Ви не залишитесь без авто і без підтримки.", ru: "Звоните на горячую линию 24/7: +38 (044) 400-66-88. Если поломка произошла не по вашей вине — бесплатная замена авто в течение 60 минут в пределах города. За городом — техническая помощь или эвакуатор. Вы не останетесь без авто и без поддержки.", en: "Call the 24/7 hotline: +38 (044) 400-66-88. If the breakdown is not your fault — free replacement car within 60 minutes in the city. Outside the city — roadside assistance or tow truck. You won't be left without a car or support.", de: "Rufen Sie die 24/7-Hotline an: +38 (044) 400-66-88. Wenn die Panne nicht Ihre Schuld ist — kostenloses Ersatzfahrzeug innerhalb 60 Minuten in der Stadt. Außerhalb der Stadt — Pannenhilfe oder Abschleppwagen. Sie bleiben nicht ohne Auto und Unterstützung." }
-  },
-  {
-    question: { uk: "Чи можна взяти авто з нижчим пробігом обмеженням?", ru: "Можно ли взять авто с меньшим ограничением пробега?", en: "Can I rent a car without a mileage limit?", de: "Kann ich ein Auto ohne Kilometerbegrenzung mieten?" },
-    answer: { uk: "Стандартні тарифи Economy та Comfort включають необмежений пробіг. Для SUV і Premium — 400 км/добу включено, кожен зайвий кілометр: 3 грн. Для тривалої оренди (від 7 діб) — повний безліміт для всіх класів.", ru: "Стандартные тарифы Economy и Comfort включают неограниченный пробег. Для SUV и Premium — 400 км/сутки включено, каждый лишний километр: 3 грн. Для длительной аренды (от 7 суток) — полный безлимит для всех классов.", en: "Standard Economy and Comfort rates include unlimited mileage. For SUV and Premium — 400 km/day included, each extra km: ₴3. For long-term rental (7+ days) — full unlimited for all classes.", de: "Standard Economy und Comfort Tarife beinhalten unbegrenzte Kilometer. Für SUV und Premium — 400 km/Tag inklusive, jeder zusätzliche km: 3 UAH. Bei Langzeitmiete (ab 7 Tage) — volle Unbegrenztheit für alle Klassen." }
-  },
-  {
-    question: { uk: "Чи можна взяти дитяче крісло?", ru: "Можно ли взять детское кресло?", en: "Can I rent a child seat?", de: "Kann ich einen Kindersitz mieten?" },
-    answer: { uk: "Так, безкоштовно за попереднім запитом. Маємо крісла для дітей від 0 до 12 років (0–36 кг). Доступні: Group 0+ (0–13 кг), Group 1 (9–18 кг), Group 2/3 (15–36 кг), бустер. Вкажіть вік та вагу дитини при бронюванні.", ru: "Да, бесплатно по предварительному запросу. Имеем кресла для детей от 0 до 12 лет (0–36 кг). Доступны: Group 0+ (0–13 кг), Group 1 (9–18 кг), Group 2/3 (15–36 кг), бустер. Укажите возраст и вес ребёнка при бронировании.", en: "Yes, free of charge on prior request. We have seats for children from 0 to 12 years (0–36 kg). Available: Group 0+ (0–13 kg), Group 1 (9–18 kg), Group 2/3 (15–36 kg), booster. Please specify the child's age and weight at booking.", de: "Ja, kostenlos auf Voranfrage. Wir haben Sitze für Kinder von 0 bis 12 Jahren (0–36 kg). Verfügbar: Gruppe 0+ (0–13 kg), Gruppe 1 (9–18 kg), Gruppe 2/3 (15–36 kg), Booster. Bitte Alter und Gewicht des Kindes bei der Buchung angeben." }
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// SPECIALS
-// ═══════════════════════════════════════════════════════════
-const specials: Omit<Special, "id">[] = [
-  {
-    slug: "week-deal-minus-25",
-    title: { uk: "Тижневий Deal: –25% на Economy та Comfort", ru: "Недельный Deal: –25% на Economy и Comfort", en: "Weekly Deal: –25% on Economy & Comfort", de: "Wöchentlicher Deal: –25% auf Economy & Comfort" },
-    subtitle: { uk: "Орендуйте на 7+ діб та заощаджуйте чверть вартості. Обмежений час.", ru: "Арендуйте на 7+ суток и экономьте четверть стоимости. Ограниченное время.", en: "Rent for 7+ days and save a quarter of the cost. Limited time.", de: "Mieten Sie für 7+ Tage und sparen Sie ein Viertel der Kosten. Zeitlich begrenzt." },
-    mainImage: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070",
-    content: [
-      { type: "paragraph", align: "left", content: { uk: "Акція діє на всі Economy та Comfort авто при бронюванні від 7 діб. Знижка застосовується автоматично при вказані терміну 7 або більше днів. Пальне, страховка та доставка включені.", ru: "Акция действует на все Economy и Comfort авто при бронировании от 7 суток. Скидка применяется автоматически при указании срока 7 или более дней. Топливо, страховка и доставка включены.", en: "Offer applies to all Economy and Comfort cars when booking for 7+ days. Discount applied automatically when selecting 7 or more days. Fuel, insurance and delivery included.", de: "Angebot gilt für alle Economy- und Comfort-Autos bei Buchung ab 7 Tagen. Rabatt wird automatisch bei Auswahl von 7 oder mehr Tagen angewendet. Kraftstoff, Versicherung und Lieferung inklusive." } }
-    ],
-    serviceId: [],
-    prices: [],
-    blogs: []
-  },
-  {
-    slug: "airport-express",
-    title: { uk: "Airport Express: трансфер + 1 доба оренди = пакетна ціна", ru: "Airport Express: трансфер + 1 сутки аренды = пакетная цена", en: "Airport Express: transfer + 1 day rental = package price", de: "Airport Express: Transfer + 1 Tag Miete = Paketpreis" },
-    subtitle: { uk: "Зустрічаємо в Борисполі та одразу оформлюємо оренду — зі знижкою 20%", ru: "Встречаем в Борисполе и сразу оформляем аренду — со скидкой 20%", en: "We meet you at Boryspil and arrange the rental on the spot — with 20% off", de: "Wir empfangen Sie in Boryspil und arrangieren die Miete sofort — mit 20% Rabatt" },
-    mainImage: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074",
-    content: [
-      { type: "paragraph", align: "left", content: { uk: "Наш представник зустрічає вас з табличкою в залі прильотів Бориспіль. Ви підписуєте договір прямо тут і їдете на орендованому авто без зупинок. Ідеально якщо плануєте дорогу відразу з аеропорту.", ru: "Наш представитель встречает вас с табличкой в зале прилётов Борисполь. Вы подписываете договор прямо здесь и едете на арендованном авто без остановок. Идеально если планируете дорогу сразу из аэропорта.", en: "Our representative meets you with a sign in the Boryspil arrivals hall. You sign the contract right there and drive off in the rental car without stops. Perfect if you plan to head straight from the airport.", de: "Unser Vertreter empfängt Sie mit einem Schild in der Boryspil-Ankunftshalle. Sie unterzeichnen den Vertrag gleich dort und fahren im Mietwagen ohne Stopps los. Perfekt wenn Sie direkt vom Flughafen aufbrechen wollen." } }
-    ],
-    serviceId: [],
-    prices: [],
-    blogs: []
-  },
-  {
-    slug: "corporate-fleet",
-    title: { uk: "Корпоративний флот: від 3 авто — ваші умови", ru: "Корпоративный флот: от 3 авто — ваши условия", en: "Corporate Fleet: from 3 cars — your terms", de: "Unternehmensflotte: ab 3 Autos — Ihre Bedingungen" },
-    subtitle: { uk: "Знижка до 30%, щомісячний рахунок, особистий менеджер та пріоритетне обслуговування", ru: "Скидка до 30%, ежемесячный счёт, личный менеджер и приоритетное обслуживание", en: "Discount up to 30%, monthly invoicing, personal manager and priority service", de: "Rabatt bis 30%, monatliche Rechnung, persönlicher Manager und Prioritätsservice" },
-    mainImage: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070",
-    content: [
-      { type: "paragraph", align: "left", content: { uk: "Для компаній що регулярно потребують авто для співробітників, делегацій або відряджень. Підписуємо корпоративний договір, виставляємо рахунок раз на місяць. Ніяких застав і готівкових розрахунків.", ru: "Для компаний которые регулярно нуждаются в авто для сотрудников, делегаций или командировок. Подписываем корпоративный договор, выставляем счёт раз в месяц. Никаких залогов и наличных расчётов.", en: "For companies that regularly need cars for staff, delegations or business trips. We sign a corporate contract and invoice once a month. No deposits or cash payments.", de: "Für Unternehmen die regelmäßig Autos für Mitarbeiter, Delegationen oder Dienstreisen benötigen. Wir unterzeichnen einen Unternehmensvertrag und stellen einmal monatlich eine Rechnung aus. Keine Kautionen oder Barzahlungen." } }
-    ],
-    serviceId: [],
-    prices: [],
-    blogs: []
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// PHOTOS
-// ═══════════════════════════════════════════════════════════
-const photos: Omit<Photo, "id">[] = [
-  {
-    title: { uk: "Автопарк DrivePoint", ru: "Автопарк DrivePoint", en: "DrivePoint Fleet", de: "DrivePoint Fuhrpark" },
-    description: { uk: "Реальні фото наших авто — зовні та всередині", ru: "Реальные фото наших авто — снаружи и внутри", en: "Real photos of our cars — outside and inside", de: "Echte Fotos unserer Autos — außen und innen" },
-    mainImage: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=2070",
-    imgArr: [
-      { src: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=2070", title: { uk: "BMW 5 Series", ru: "BMW 5 Series", en: "BMW 5 Series", de: "BMW 5 Series" }, description: { uk: "Premium клас — завжди у бездоганному стані", ru: "Premium класс — всегда в безупречном состоянии", en: "Premium class — always in impeccable condition", de: "Premium-Klasse — immer in tadelloser Verfassung" } },
-      { src: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?q=80&w=2071", title: { uk: "Toyota RAV4", ru: "Toyota RAV4", en: "Toyota RAV4", de: "Toyota RAV4" }, description: { uk: "Флагман SUV парку — Toyota RAV4 2023", ru: "Флагман SUV парка — Toyota RAV4 2023", en: "SUV fleet flagship — Toyota RAV4 2023", de: "SUV-Flotten-Flaggschiff — Toyota RAV4 2023" } },
-      { src: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?q=80&w=2025", title: { uk: "Volkswagen Polo", ru: "Volkswagen Polo", en: "Volkswagen Polo", de: "Volkswagen Polo" }, description: { uk: "Economy клас — популярний вибір для міста", ru: "Economy класс — популярный выбор для города", en: "Economy class — popular city choice", de: "Economy-Klasse — beliebte Stadtwahl" } },
-      { src: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069", title: { uk: "Mercedes Vito", ru: "Mercedes Vito", en: "Mercedes Vito", de: "Mercedes Vito" }, description: { uk: "Mercedes Vito 7+1 — комфортний трансфер для великих компаній", ru: "Mercedes Vito 7+1 — комфортный трансфер для больших компаний", en: "Mercedes Vito 7+1 — comfortable transfer for large groups", de: "Mercedes Vito 7+1 — komfortabler Transfer für große Gruppen" } },
-      { src: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070", title: { uk: "Наші водії", ru: "Наши водители", en: "Our drivers", de: "Unsere Fahrer" }, description: { uk: "Команда DrivePoint — завжди пунктуальна та ввічлива", ru: "Команда DrivePoint — всегда пунктуальная и вежливая", en: "The DrivePoint team — always punctual and courteous", de: "Das DrivePoint-Team — immer pünktlich und höflich" } },
-      { src: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074", title: { uk: "Аеропорт Бориспіль", ru: "Аэропорт Борисполь", en: "Boryspil Airport", de: "Flughafen Boryspil" }, description: { uk: "Зустрічаємо та проводжаємо 24/7", ru: "Встречаем и провожаем 24/7", en: "Meeting and seeing off passengers 24/7", de: "Empfangen und Verabschieden von Passagieren rund um die Uhr" } }
-    ]
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// BLOGS (route: "blogs" = tab "roadnotes") — розширений контент
-// ═══════════════════════════════════════════════════════════
-const blogs: Omit<Blog, "id">[] = [
-  {
-    slug: "kyiv-to-carpathians-by-car-complete-guide",
-    mainImage: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021",
-    title: { uk: "Київ → Карпати на орендованому авто: повний гід 2024", ru: "Киев → Карпаты на арендованном авто: полный гид 2024", en: "Kyiv → Carpathians by rental car: complete 2024 guide", de: "Kyiw → Karpaten mit dem Mietwagen: vollständiger Guide 2024" },
-    subtitle: { uk: "Маршрут, зупинки, дороги і реальні поради від наших клієнтів", ru: "Маршрут, остановки, дороги и реальные советы от наших клиентов", en: "Route, stops, road conditions and real tips from our clients", de: "Route, Stopps, Straßenbedingungen und echte Tipps von unseren Kunden" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Відстань і час: Київ до Буковелю — ~470 км, 6–7 годин", ru: "Расстояние и время: Киев до Буковеля — ~470 км, 6–7 часов", en: "Distance and time: Kyiv to Bukovel — ~470 km, 6–7 hours", de: "Entfernung und Zeit: Kiew nach Bukovel — ~470 km, 6–7 Stunden" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Маршрут через Житомир → Рівне → Луцьк → Мукачево → Буковель вважається найбільш комфортним. Дорога Е40 Київ–Рівне — відмінний асфальт, можна їхати 110–120 км/год. Від Луцька через Карпати — якість дороги знижується, але краєвиди компенсують усе. Рекомендуємо стартувати о 5–6 ранку щоб уникнути київських пробок і приїхати засвітла.",
-          ru: "Маршрут через Житомир → Ровно → Луцк → Мукачево → Буковель считается наиболее комфортным. Дорога Е40 Киев–Ровно — отличный асфальт, можно ехать 110–120 км/ч. От Луцка через Карпаты — качество дороги снижается, но виды компенсируют всё. Рекомендуем стартовать в 5–6 утра чтобы избежать киевских пробок и приехать засветло.",
-          en: "The route via Zhytomyr → Rivne → Lutsk → Mukachevo → Bukovel is considered the most comfortable. The E40 Kyiv–Rivne road has excellent tarmac, you can do 110–120 km/h. From Lutsk through the Carpathians — road quality decreases but the views make up for everything. We recommend departing at 5–6am to avoid Kyiv traffic and arrive while it's still light.",
-          de: "Die Route über Zhytomyr → Rivne → Lutsk → Mukachevo → Bukovel gilt als die komfortabelste. Die E40 Kiew–Rivne hat ausgezeichneten Asphalt, man kann 110–120 km/h fahren. Von Lutsk durch die Karpaten — Straßenqualität nimmt ab, aber die Aussichten machen alles wett. Empfehlen um 5–6 Uhr morgens abzufahren um Kiewer Staus zu vermeiden und bei Tageslicht anzukommen."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Зупинки рекомендовані нашими клієнтами", ru: "Остановки рекомендованные нашими клиентами", en: "Stops recommended by our clients", de: "Von unseren Kunden empfohlene Stopps" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Житомир (2 год від Києва) — кава та туалет, АЗС WOG\nРівне (3.5 год) — обід, зупинка 30–40 хв\nТунель під Карпатами — обов'язкова зупинка для фото\nМукачево (5.5 год) — старий замок Паланок, каву в центрі\nЯремче — ресторан «Гуцульська хата», форель і деруни\nБуковель — парковка коштує 100 грн/добу",
-              ru: "Житомир (2 ч от Киева) — кофе и туалет, АЗС WOG\nРовно (3.5 ч) — обед, остановка 30–40 мин\nТоннель под Карпатами — обязательная остановка для фото\nМукачево (5.5 ч) — старый замок Паланок, кофе в центре\nЯремче — ресторан «Гуцульская хата», форель и деруны\nБуковель — парковка стоит 100 грн/сутки",
-              en: "Zhytomyr (2 hrs from Kyiv) — coffee and toilet, WOG fuel station\nRivne (3.5 hrs) — lunch, 30–40 min stop\nCarpathian tunnel — mandatory photo stop\nMukachevo (5.5 hrs) — Palanok castle, coffee in the centre\nYaremche — 'Hutsulska Khata' restaurant, trout and potato pancakes\nBukovel — parking costs ₴100/day",
-              de: "Zhytomyr (2 Std von Kiew) — Kaffee und Toilette, WOG Tankstelle\nRivne (3,5 Std) — Mittagessen, 30–40 Min Pause\nKarpaten-Tunnel — obligatorischer Foto-Stopp\nMukachevo (5,5 Std) — Burg Palanok, Kaffee im Zentrum\nYaremche — Restaurant 'Hutsulska Khata', Forelle und Kartoffelpuffer\nBukovel — Parken kostet 100 UAH/Tag"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Яке авто брати в Карпати", ru: "Какое авто брать в Карпаты", en: "Which car to take to the Carpathians", de: "Welches Auto für die Karpaten nehmen" } },
-          {
-            type: "paragraph", align: "left",
-            content: {
-              uk: "Для гірських доріг і потенційного бездоріжжя настійливо рекомендуємо SUV — Toyota RAV4 або Hyundai Tucson. Кліренс 200+ мм рятує на кам'янистих підйомах. Взимку і в міжсезоння — тільки повний привод. Economy клас теж доїде, але нервів витратите більше.",
-              ru: "Для горных дорог и потенциального бездорожья настоятельно рекомендуем SUV — Toyota RAV4 или Hyundai Tucson. Клиренс 200+ мм спасает на каменистых подъёмах. Зимой и в межсезонье — только полный привод. Economy класс тоже доедет, но нервов потратите больше.",
-              en: "For mountain roads and potential off-road conditions, we strongly recommend an SUV — Toyota RAV4 or Hyundai Tucson. 200+ mm clearance saves you on rocky climbs. In winter and shoulder season — all-wheel drive only. Economy class will get there too, but at the cost of your nerves.",
-              de: "Für Bergstraßen und potenzielle Geländebedingungen empfehlen wir dringend ein SUV — Toyota RAV4 oder Hyundai Tucson. 200+ mm Bodenfreiheit rettet bei steinigen Anstiegen. Im Winter und in der Nebensaison — nur Allradantrieb. Economy-Klasse kommt auch an, aber auf Kosten der Nerven."
-            }
-          }
-        ]
-      },
-      {
-        type: "heading", align: "left",
-        content: { uk: "Практичні поради перед поїздкою", ru: "Практические советы перед поездкой", en: "Practical tips before the trip", de: "Praktische Tipps vor der Reise" }
-      },
-      {
-        type: "list", align: "left",
-        content: {
-          uk: "Заправтесь на WOG або ОККО перед Карпатами — в горах АЗС рідше\nСкачайте Maps.me офлайн — в горах може не бути зв'язку\nВізьміть готівку — не всі кафе і паркінги приймають картки\nПеревірте тиск у шинах — гірська дорога дає навантаження\nДодаткова страховка КАСКО — варта 150–200 грн/добу та спокою нервів\nТелефон DrivePoint 24/7 — зберіть в контакти на випадок",
-          ru: "Заправьтесь на WOG или ОККО перед Карпатами — в горах АЗС реже\nСкачайте Maps.me офлайн — в горах может не быть связи\nВозьмите наличные — не все кафе и парковки принимают карты\nПроверьте давление в шинах — горная дорога даёт нагрузку\nДополнительная страховка КАСКО — стоит 150–200 грн/сутки и спокойствия нервов\nТелефон DrivePoint 24/7 — сохраните в контакты на случай",
-          en: "Fill up at WOG or OKKO before the Carpathians — fuel stations are scarcer in the mountains\nDownload Maps.me offline — there may be no signal in the mountains\nTake cash — not all cafés and car parks accept cards\nCheck tyre pressure — mountain roads put strain on tyres\nExtra CASCO insurance — worth ₴150–200/day for peace of mind\nDrivePoint 24/7 number — save it in your contacts just in case",
-          de: "Tanken Sie bei WOG oder OKKO vor den Karpaten — in den Bergen gibt es weniger Tankstellen\nLaden Sie Maps.me offline herunter — in den Bergen kann es kein Netz geben\nNehmen Sie Bargeld mit — nicht alle Cafés und Parkplätze nehmen Karten\nReifendruck prüfen — Bergstraßen belasten die Reifen\nZusätzliche Kaskoversicherung — 150–200 UAH/Tag für Seelenfrieden wert\nDrivePoint 24/7 Nummer — im Kontakte speichern für alle Fälle"
-        }
-      }
-    ]
-  },
-  {
-    slug: "how-to-pick-up-rental-car-checklist",
-    mainImage: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070",
-    title: { uk: "Чеклист: що перевірити при отриманні орендованого авто", ru: "Чеклист: что проверить при получении арендованного авто", en: "Checklist: what to inspect when picking up a rental car", de: "Checkliste: Was bei der Abholung eines Mietwagens zu prüfen ist" },
-    subtitle: { uk: "12 пунктів які збережуть вашу заставу і нерви — перевірено нашими клієнтами", ru: "12 пунктов которые сохранят ваш залог и нервы — проверено нашими клиентами", en: "12 points that will save your deposit and nerves — proven by our clients", de: "12 Punkte die Ihre Kaution und Nerven retten werden — von unseren Kunden erprobt" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Більшість проблем із заставою починаються через непомічені дрібниці при прийомі авто", ru: "Большинство проблем с залогом начинаются из-за незамеченных мелочей при приёме авто", en: "Most deposit issues start from unnoticed small things when picking up the car", de: "Die meisten Kautionsprobleme beginnen mit unbeachteten Kleinigkeiten bei der Fahrzeugabholung" }
-      },
-      {
-        type: "paragraph", align: "left",
-        content: {
-          uk: "Ми зібрали 12 пунктів які наші клієнти перевіряють при кожному отриманні авто. Займає 5–7 хвилин. Захищає від ситуацій «це не я поцарапав» і дозволяє спокійно виїхати знаючи що всі пошкодження зафіксовані.",
-          ru: "Мы собрали 12 пунктов которые наши клиенты проверяют при каждом получении авто. Занимает 5–7 минут. Защищает от ситуаций «это не я поцарапал» и позволяет спокойно выехать зная что все повреждения зафиксированы.",
-          en: "We've compiled 12 points our clients check every time they pick up a car. Takes 5–7 minutes. Protects against 'I didn't scratch that' situations and lets you drive off knowing all damage is documented.",
-          de: "Wir haben 12 Punkte zusammengestellt die unsere Kunden bei jeder Fahrzeugabholung prüfen. Dauert 5–7 Minuten. Schützt vor 'Das habe ich nicht zerkratzt'-Situationen und lässt Sie beruhigt abfahren in dem Wissen dass alle Schäden dokumentiert sind."
-        }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Зовнішній огляд (7 пунктів)", ru: "Внешний осмотр (7 пунктов)", en: "Exterior inspection (7 points)", de: "Außeninspektion (7 Punkte)" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "1. Сфотографуйте КОЖЕН кут авто — передній, задній, 2 бокові\n2. Перевірте всі 4 диски — чи немає потертостей та тріщин\n3. Лобове скло — мікротріщини видно на сонці під кутом\n4. Дзеркала — подряпини та цілісність кришки\n5. Бампери — нижня частина часто затерта\n6. Дах — піднімайтесь на шкарпетках або знімайте на телефон\n7. Зафіксуйте в акті приймання КОЖНЕ пошкодження",
-              ru: "1. Сфотографируйте КАЖДЫЙ угол авто — передний, задний, 2 боковых\n2. Проверьте все 4 диска — нет ли потёртостей и трещин\n3. Лобовое стекло — микротрещины видны на солнце под углом\n4. Зеркала — царапины и целостность крышки\n5. Бамперы — нижняя часть часто затёрта\n6. Крыша — поднимайтесь на носочках или снимайте на телефон\n7. Зафиксируйте в акте приёма КАЖДОЕ повреждение",
-              en: "1. Photograph EVERY angle of the car — front, rear, 2 sides\n2. Check all 4 alloys — for scratches and cracks\n3. Windscreen — micro-cracks are visible in sunlight at an angle\n4. Mirrors — scratches and cover integrity\n5. Bumpers — lower section is often scuffed\n6. Roof — stand on tiptoes or take a phone photo\n7. Record EVERY damage in the handover document",
-              de: "1. Fotografieren Sie JEDEN Winkel des Autos — vorne, hinten, 2 Seiten\n2. Alle 4 Felgen prüfen — auf Kratzer und Risse\n3. Windschutzscheibe — Mikrorisse sind in der Sonne im Winkel sichtbar\n4. Spiegel — Kratzer und Deckelintegrität\n5. Stoßstangen — Unterseite ist oft abgescheuert\n6. Dach — auf Zehenspitzen stehen oder mit dem Telefon fotografieren\n7. JEDEN Schaden im Übergabeprotokoll festhalten"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Внутрішній огляд та технічна перевірка (5 пунктів)", ru: "Внутренний осмотр и техническая проверка (5 пунктов)", en: "Interior check and technical inspection (5 points)", de: "Inneninspektion und technische Prüfung (5 Punkte)" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "8. Рівень пального — має бути повний бак. Відразу при виїзді\n9. Навігація та мультимедіа — перевірте чи все вмикається\n10. Кондиціонер — увімкніть і перевірте всі виходи\n11. Акумулятор — не повинно бути жодних помаранчевих індикаторів\n12. Зарядник USB — перевірте обидва USB-порти телефоном",
-              ru: "8. Уровень топлива — должен быть полный бак. Сразу при выезде\n9. Навигация и мультимедиа — проверьте включается ли всё\n10. Кондиционер — включите и проверьте все выходы\n11. Аккумулятор — не должно быть никаких оранжевых индикаторов\n12. Зарядник USB — проверьте оба USB-порта телефоном",
-              en: "8. Fuel level — should be a full tank. Check right when you pick up\n9. Navigation and multimedia — check everything switches on\n10. Air conditioning — turn on and test all vents\n11. Battery — no orange indicator lights should be on\n12. USB charger — test both USB ports with your phone",
-              de: "8. Kraftstoffstand — sollte ein voller Tank sein. Sofort bei der Abholung prüfen\n9. Navigation und Multimedia — prüfen ob alles einschaltet\n10. Klimaanlage — einschalten und alle Lüftungsöffnungen testen\n11. Batterie — keine orangen Kontrollleuchten sollten leuchten\n12. USB-Ladegerät — beide USB-Anschlüsse mit dem Telefon testen"
-            }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    slug: "economy-vs-suv-which-to-choose",
-    mainImage: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=2070",
-    title: { uk: "Economy vs SUV: яке авто орендувати для вашого маршруту", ru: "Economy vs SUV: какое авто арендовать для вашего маршрута", en: "Economy vs SUV: which car to rent for your route", de: "Economy vs SUV: welches Auto für Ihre Route mieten" },
-    subtitle: { uk: "Розбираємо 6 типових ситуацій і даємо чесну рекомендацію — без маркетингу", ru: "Разбираем 6 типичных ситуаций и даём честную рекомендацию — без маркетинга", en: "Breaking down 6 typical situations and giving an honest recommendation — no marketing spin", de: "6 typische Situationen analysiert mit ehrlicher Empfehlung — ohne Marketing" },
-    content: [
-      {
-        type: "heading", align: "left",
-        content: { uk: "Нас часто запитують: «чи варто переплачувати за SUV?» Відповідь залежить від маршруту", ru: "Нас часто спрашивают: «стоит ли переплачивать за SUV?» Ответ зависит от маршрута", en: "We're often asked: 'is it worth paying extra for an SUV?' The answer depends on the route", de: "Wir werden oft gefragt: 'Lohnt es sich für ein SUV mehr zu bezahlen?' Die Antwort hängt von der Route ab" }
-      },
-      {
-        type: "image", align: "left",
-        media: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "Economy — правильний вибір коли:", ru: "Economy — правильный выбор когда:", en: "Economy — right choice when:", de: "Economy — richtige Wahl wenn:" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Їдете тільки містом і асфальтом\nПоїздка 1–2 доби і мета — просто доїхати\nЄ 1–2 пасажири і мінімум багажу\nБюджет обмежений — різниця суттєва\nПаркуєтеся в центрі або на підземному паркінгу\nПлануєте часто заправлятися — Economy п'є вдвічі менше",
-              ru: "Едете только городом и асфальтом\nПоездка 1–2 суток и цель — просто доехать\nЕсть 1–2 пассажира и минимум багажа\nБюджет ограничен — разница существенна\nПаркуетесь в центре или на подземном паркинге\nПланируете часто заправляться — Economy пьёт вдвое меньше",
-              en: "You're driving city roads only\nTrip of 1–2 days with the sole goal of getting there\nYou have 1–2 passengers and minimal luggage\nBudget is tight — the difference is significant\nYou're parking in the centre or underground\nYou plan to fill up often — Economy uses half the fuel",
-              de: "Sie fahren nur auf Stadt- und Asphaltstraßen\nReise von 1–2 Tagen und Ziel ist nur anzukommen\nSie haben 1–2 Passagiere und minimales Gepäck\nBudget ist begrenzt — der Unterschied ist erheblich\nSie parken im Zentrum oder im Untergeschoss\nSie planen häufig zu tanken — Economy verbraucht halb so viel"
-            }
-          }
-        ]
-      },
-      {
-        type: "image", align: "right",
-        media: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070",
-        widthPercent: 50,
-        children: [
-          { type: "heading", align: "left", content: { uk: "SUV — правильний вибір коли:", ru: "SUV — правильный выбор когда:", en: "SUV — right choice when:", de: "SUV — richtige Wahl wenn:" } },
-          {
-            type: "list", align: "left",
-            content: {
-              uk: "Карпати, Полісся або інші нерівні дороги\nСім'я 4+ осіб або 2+ валізи в багажнику\nПоїздка 3+ доби — комфорт на трасі вартий різниці\nВелика компанія де потрібен простір ззаду\nЗима або міжсезоння на гірських дорогах — тільки SUV\nВи хочете просто їхати в задоволення а не терпіти",
-              ru: "Карпаты, Полесье или другие неровные дороги\nСемья 4+ человек или 2+ чемодана в багажнике\nПоездка 3+ суток — комфорт на трассе стоит разницы\nБольшая компания где нужно пространство сзади\nЗима или межсезонье на горных дорогах — только SUV\nВы хотите просто ехать в удовольствие а не терпеть",
-              en: "Carpathians, Polisia or other uneven roads\nFamily of 4+ or 2+ suitcases in the boot\nTrip of 3+ days — highway comfort is worth the difference\nA large group where rear space is needed\nWinter or shoulder season on mountain roads — SUV only\nYou want to enjoy the drive rather than endure it",
-              de: "Karpaten, Polissja oder andere unebene Straßen\nFamilie mit 4+ Personen oder 2+ Koffer im Kofferraum\nReise von 3+ Tagen — Autobahnkomfort ist den Aufpreis wert\nEine große Gruppe bei der hinten Platz gebraucht wird\nWinter oder Nebensaison auf Bergstraßen — nur SUV\nSie wollen die Fahrt genießen statt sie zu ertragen"
-            }
-          }
-        ]
-      }
-    ]
-  }
-];
-
-// ═══════════════════════════════════════════════════════════
-// ABOUT PAGE (route: "about" = tab "garage")
-// ═══════════════════════════════════════════════════════════
-const aboutPage: PageContent = {
-  routeKey: "about",
-  content: [
+const busines: BusinessData  =
     {
-      type: "heading", align: "left",
-      content: { uk: "DrivePoint — прокат авто без обіцянок які не виконуються", ru: "DrivePoint — прокат авто без обещаний которые не выполняются", en: "DrivePoint — car rental without promises that don't get kept", de: "DrivePoint — Autovermietung ohne Versprechen die nicht gehalten werden" }
-    },
-    {
-      type: "paragraph", align: "left",
-      content: {
-        uk: "Ми заснували DrivePoint у 2017 році після того як самі мали неприємний досвід оренди авто: брудне авто «зі слідами ремонту», прихована комісія за «обробку», і неможливість отримати допомогу о 2 ночі. Вирішили що так не має бути — і побудували компанію де кожна обіцянка виконується.",
-        ru: "Мы основали DrivePoint в 2017 году после того как сами имели неприятный опыт аренды авто: грязное авто «со следами ремонта», скрытая комиссия за «обработку», и невозможность получить помощь в 2 ночи. Решили что так не должно быть — и построили компанию где каждое обещание выполняется.",
-        en: "We founded DrivePoint in 2017 after having an unpleasant car rental experience ourselves: a dirty car 'with traces of repair', a hidden 'processing' fee, and no way to get help at 2am. We decided this isn't how it should be — and built a company where every promise is kept.",
-        de: "Wir gründeten DrivePoint im Jahr 2017 nachdem wir selbst eine unangenehme Autovermietungserfahrung gemacht hatten: ein dreckiges Auto 'mit Spuren einer Reparatur', eine versteckte 'Bearbeitungsgebühr' und keine Möglichkeit um 2 Uhr nachts Hilfe zu bekommen. Wir entschieden dass das nicht so sein sollte — und bauten ein Unternehmen wo jedes Versprechen gehalten wird."
-      }
-    },
-    {
-      type: "image", align: "left",
-      media: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2070",
-      widthPercent: 50,
-      children: [
-        { type: "heading", align: "left", content: { uk: "DrivePoint у цифрах", ru: "DrivePoint в цифрах", en: "DrivePoint by the numbers", de: "DrivePoint in Zahlen" } },
+      "meta": {
+        "name":      { "uk": "LinguaPoint", "ru": "LinguaPoint", "en": "LinguaPoint", "de": "LinguaPoint" },
+        "shortName": { "uk": "LinguaPoint", "ru": "LinguaPoint", "en": "LinguaPoint", "de": "LinguaPoint" },
+        "type": "company",
+        "slogan": {
+          "uk": "Говори впевнено — ми побудуємо твій шлях до мови",
+          "ru": "Говори уверенно — мы построим твой путь к языку",
+          "en": "Speak with confidence — we build your path to the language",
+          "de": "Sprich selbstbewusst — wir bauen deinen Weg zur Sprache"
+        },
+        "description": {
+          "uk": "Мовна школа з індивідуальним та груповим навчанням. Англійська, німецька, українська та російська мови. Курси від 4 тижнів до 1 року. Онлайн і офлайн формат. Сертифіковані викладачі, підготовка до IELTS, TOEFL, TestDaF.",
+          "ru": "Языковая школа с индивидуальным и групповым обучением. Английский, немецкий, украинский и русский языки. Курсы от 4 недель до 1 года. Онлайн и офлайн формат. Сертифицированные преподаватели, подготовка к IELTS, TOEFL, TestDaF.",
+          "en": "Language school offering individual and group lessons. English, German, Ukrainian and Russian. Courses from 4 weeks to 1 year. Online and offline formats. Certified teachers, preparation for IELTS, TOEFL, TestDaF.",
+          "de": "Sprachschule mit Einzel- und Gruppenunterricht. Englisch, Deutsch, Ukrainisch und Russisch. Kurse von 4 Wochen bis 1 Jahr. Online und Präsenz. Zertifizierte Lehrkräfte, Vorbereitung auf IELTS, TOEFL, TestDaF."
+        },
+        "logo": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022",
+        "tabs": {
+          "about": {
+            "route": "about", "order": 0, "enabled": true,
+            "shortName": { "uk": "Про нас",    "ru": "О нас",       "en": "About",      "de": "Über uns" },
+            "title":     { "uk": "Про LinguaPoint та наш підхід", "ru": "О LinguaPoint и нашем подходе", "en": "About LinguaPoint & Our Approach", "de": "Über LinguaPoint & unseren Ansatz" },
+            "description": { "uk": "Хто ми, як ми навчаємо та наші гарантії", "ru": "Кто мы, как мы учим и наши гарантии", "en": "Who we are, how we teach and our guarantees", "de": "Wer wir sind, wie wir unterrichten und unsere Garantien" },
+            "headerImage": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070"
+          },
+          "services": {
+            "route": "services", "order": 1, "enabled": true,
+            "shortName": { "uk": "Послуги",    "ru": "Услуги",      "en": "Courses",    "de": "Kurse" },
+            "title":     { "uk": "Наші курси та послуги", "ru": "Наши курсы и услуги", "en": "Our Courses & Services", "de": "Unsere Kurse & Leistungen" },
+            "description": { "uk": "Індивідуальне, групове, корпоративне навчання та підготовка до іспитів", "ru": "Индивидуальное, групповое, корпоративное обучение и подготовка к экзаменам", "en": "Individual, group, corporate training and exam preparation", "de": "Einzel-, Gruppen-, Firmenkurse und Prüfungsvorbereitung" },
+            "headerImage": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2064"
+          },
+          "specials": {
+            "route": "specials", "order": 2, "enabled": true,
+            "shortName": { "uk": "Акції",      "ru": "Акции",       "en": "Deals",      "de": "Angebote" },
+            "title":     { "uk": "Акції та знижки", "ru": "Акции и скидки", "en": "Special Deals & Discounts", "de": "Angebote & Rabatte" },
+            "description": { "uk": "Сезонні знижки, реферальна програма та групові пропозиції", "ru": "Сезонные скидки, реферальная программа и групповые предложения", "en": "Seasonal discounts, referral programme and group offers", "de": "Saisonale Rabatte, Empfehlungsprogramm und Gruppenangebote" },
+            "headerImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070"
+          },
+          "price": {
+            "route": "price", "order": 3, "enabled": true,
+            "shortName": { "uk": "Ціни",       "ru": "Цены",        "en": "Prices",     "de": "Preise" },
+            "title":     { "uk": "Тарифи та ціни на навчання", "ru": "Тарифы и цены на обучение", "en": "Tuition Rates & Prices", "de": "Kurspreise & Tarife" },
+            "description": { "uk": "Прозорі ціни на всі формати навчання", "ru": "Прозрачные цены на все форматы обучения", "en": "Transparent pricing for all learning formats", "de": "Transparente Preise für alle Lernformate" }
+          },
+          "employees": {
+            "route": "employees", "order": 4, "enabled": true,
+            "shortName": { "uk": "Викладачі", "ru": "Преподаватели", "en": "Teachers",  "de": "Lehrkräfte" },
+            "title":     { "uk": "Наша команда викладачів", "ru": "Наша команда преподавателей", "en": "Our Teaching Team", "de": "Unser Lehrerteam" },
+            "description": { "uk": "Сертифіковані викладачі з міжнародним досвідом", "ru": "Сертифицированные преподаватели с международным опытом", "en": "Certified teachers with international experience", "de": "Zertifizierte Lehrkräfte mit internationalem Erfahrung" },
+            "headerImage": "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2074"
+          },
+          "faq": {
+            "route": "faq", "order": 5, "enabled": true,
+            "shortName": { "uk": "Питання",   "ru": "Вопросы",     "en": "FAQ",        "de": "FAQ" },
+            "title":     { "uk": "Часті питання про навчання", "ru": "Частые вопросы об обучении", "en": "Frequently Asked Questions", "de": "Häufig gestellte Fragen" },
+            "description": { "uk": "Відповіді на найпоширеніші питання про курси, формат і оплату", "ru": "Ответы на самые распространённые вопросы о курсах, формате и оплате", "en": "Answers to the most common questions about courses, format and payment", "de": "Antworten auf die häufigsten Fragen zu Kursen, Format und Zahlung" }
+          },
+          "gallery": {
+            "route": "gallery", "order": 6, "enabled": true,
+            "shortName": { "uk": "Галерея",   "ru": "Галерея",     "en": "Gallery",    "de": "Galerie" },
+            "title":     { "uk": "Фото наших класів та подій", "ru": "Фото наших классов и событий", "en": "Photos of Our Classrooms & Events", "de": "Fotos unserer Klassenräume & Veranstaltungen" },
+            "description": { "uk": "Реальна атмосфера навчання у LinguaPoint", "ru": "Реальная атмосфера обучения в LinguaPoint", "en": "The real learning atmosphere at LinguaPoint", "de": "Die echte Lernatmosphäre bei LinguaPoint" },
+            "headerImage": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=2032"
+          },
+          "blogs": {
+            "route": "blogs", "order": 7, "enabled": true,
+            "shortName": { "uk": "Блог",      "ru": "Блог",        "en": "Blog",       "de": "Blog" },
+            "title":     { "uk": "Поради з вивчення мов та корисні статті", "ru": "Советы по изучению языков и полезные статьи", "en": "Language Learning Tips & Useful Articles", "de": "Sprachtipps & nützliche Artikel" },
+            "description": { "uk": "Методики, лайфхаки та поради від наших викладачів", "ru": "Методики, лайфхаки и советы от наших преподавателей", "en": "Methods, life hacks and tips from our teachers", "de": "Methoden, Lifehacks und Tipps von unseren Lehrkräften" },
+            "headerImage": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1973"
+          },
+          "contact": {
+            "route": "contact", "order": 8, "enabled": true,
+            "shortName": { "uk": "Контакти",  "ru": "Контакты",    "en": "Contact",    "de": "Kontakt" },
+            "title":     { "uk": "Запишіться на безкоштовний пробний урок", "ru": "Запишитесь на бесплатный пробный урок", "en": "Sign Up for a Free Trial Lesson", "de": "Für eine kostenlose Probestunde anmelden" },
+            "description": { "uk": "Відповімо протягом 15 хвилин у будь-який зручний месенджер", "ru": "Ответим в течение 15 минут в любой удобный мессенджер", "en": "We reply within 15 minutes via any convenient messenger", "de": "Wir antworten innerhalb von 15 Minuten über jeden Messenger" }
+          }
+        }
+      },
+
+      "generalInfo": {
+        "address": {
+          "uk": "вул. Хрещатик, 22, Київ, 01001",
+          "ru": "ул. Крещатик, 22, Киев, 01001",
+          "en": "22 Khreshchatyk St, Kyiv, 01001",
+          "de": "Khreshchatyk-Str. 22, Kiew, 01001"
+        },
+        "phone": {
+          "uk": "+38 (044) 333-77-55",
+          "ru": "+38 (044) 333-77-55",
+          "en": "+38 044 333-77-55",
+          "de": "+38 044 333-77-55"
+        },
+        "email": "hello@linguapoint.ua",
+        "working_hours": [
+          { "days": { "uk": "Пн–Пт", "ru": "Пн–Пт", "en": "Mon–Fri", "de": "Mo–Fr" }, "hours": "09:00–21:00" },
+          { "days": { "uk": "Сб–Нд", "ru": "Сб–Вс", "en": "Sat–Sun", "de": "Sa–So" }, "hours": "10:00–18:00" }
+        ],
+        "messengers": {
+          "telegram": "@linguapoint_ua",
+          "viber": "+380443337755",
+          "whatsapp": "+380443337755"
+        },
+        "socials": {
+          "instagram": "instagram.com/linguapoint.ua",
+          "facebook": "facebook.com/linguapointua"
+        },
+        "map": "https://maps.google.com/?q=Khreshchatyk+22+Kyiv"
+      },
+
+      "services": [
         {
-          type: "list", align: "left",
-          content: {
-            uk: "120+ автомобілів в парку\n14 000+ успішних оренд\nСередній вік авто — 2.3 роки\nКлієнти з 18 країн\nNPS клієнтів — 71\nРейтинг Google: 4.8/5 (520+ відгуків)\n5 міст присутності",
-            ru: "120+ автомобилей в парке\n14 000+ успешных аренд\nСредний возраст авто — 2.3 года\nКлиенты из 18 стран\nNPS клиентов — 71\nРейтинг Google: 4.8/5 (520+ отзывов)\n5 городов присутствия",
-            en: "120+ cars in the fleet\n14,000+ successful rentals\nAverage car age — 2.3 years\nClients from 18 countries\nClient NPS — 71\nGoogle rating: 4.8/5 (520+ reviews)\n5 cities of presence",
-            de: "120+ Autos in der Flotte\n14.000+ erfolgreiche Vermietungen\nDurchschnittliches Fahrzeugalter — 2,3 Jahre\nKunden aus 18 Ländern\nKunden-NPS — 71\nGoogle-Bewertung: 4,8/5 (520+ Bewertungen)\n5 Präsenzstädte"
-          }
-        }
-      ]
-    },
-    {
-      type: "image", align: "right",
-      media: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=2070",
-      widthPercent: 50,
-      children: [
-        { type: "heading", align: "left", content: { uk: "Як ми готуємо авто до кожної оренди", ru: "Как мы готовим авто к каждой аренде", en: "How we prepare every car for rental", de: "Wie wir jedes Auto für die Vermietung vorbereiten" } },
+          "slug": "individual-lessons",
+          "mainImage": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071",
+          "title":    { "uk": "Індивідуальні уроки", "ru": "Индивидуальные уроки", "en": "Individual Lessons", "de": "Einzelunterricht" },
+          "subtitle": { "uk": "Особистий викладач, гнучкий графік, максимальний прогрес", "ru": "Личный преподаватель, гибкий график, максимальный прогресс", "en": "Personal teacher, flexible schedule, maximum progress", "de": "Persönlicher Lehrer, flexibler Zeitplan, maximaler Fortschritt" },
+          "headerTitle": { "uk": "Навчання 1:1 — найефективніший формат", "ru": "Обучение 1:1 — самый эффективный формат", "en": "1:1 Learning — the most effective format", "de": "1:1 Lernen — das effektivste Format" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Чому індивідуально — це в рази швидше ніж у групі", "ru": "Почему индивидуально — это в разы быстрее чем в группе", "en": "Why 1:1 is many times faster than a group", "de": "Warum Einzelunterricht viel schneller ist als Gruppenunterricht" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Індивідуальний урок — це 60 хвилин виключно вашого прогресу. Ніяких пауз поки інші відповідають. Ніяких тем які вам вже відомі. Викладач повністю адаптує програму під ваші цілі: бізнес-англійська, розмовна практика, підготовка до IELTS чи просто впевнена комунікація.",
+                "ru": "Индивидуальный урок — это 60 минут исключительно вашего прогресса. Никаких пауз пока другие отвечают. Никаких тем которые вам уже известны. Преподаватель полностью адаптирует программу под ваши цели: бизнес-английский, разговорная практика, подготовка к IELTS или просто уверенная коммуникация.",
+                "en": "An individual lesson is 60 minutes exclusively for your progress. No pauses while others answer. No topics you already know. The teacher fully adapts the programme to your goals: business English, conversational practice, IELTS preparation or simply confident communication.",
+                "de": "Ein Einzelunterricht sind 60 Minuten ausschließlich für Ihren Fortschritt. Keine Pausen während andere antworten. Keine Themen die Sie bereits kennen. Der Lehrer passt das Programm vollständig an Ihre Ziele an: Business-Englisch, Konversationspraxis, IELTS-Vorbereitung oder einfach selbstbewusste Kommunikation."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Доступні мови", "ru": "Доступные языки", "en": "Available languages", "de": "Verfügbare Sprachen" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Англійська — A1 до C2, всі рівні\nНімецька — A1 до C1\nУкраїнська — для іноземців та ділове мовлення\nРосійська — для іноземців",
+                    "ru": "Английский — A1 до C2, все уровни\nНемецкий — A1 до C1\nУкраинский — для иностранцев и деловая речь\nРусский — для иностранцев",
+                    "en": "English — A1 to C2, all levels\nGerman — A1 to C1\nUkrainian — for foreigners and business speech\nRussian — for foreigners",
+                    "de": "Englisch — A1 bis C2, alle Niveaus\nDeutsch — A1 bis C1\nUkrainisch — für Ausländer und Geschäftssprache\nRussisch — für Ausländer"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image", "align": "right",
+              "media": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Тривалість курсів", "ru": "Длительность курсов", "en": "Course durations", "de": "Kursdauern" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "4 тижні — інтенсивний старт (8 уроків)\n8 тижнів — базовий курс (16 уроків)\n3 місяці — стандартний рівень (24 уроки)\n6 місяців — повне занурення (48 уроків)\n1 рік — від нуля до впевненого рівня (96 уроків)",
+                    "ru": "4 недели — интенсивный старт (8 уроков)\n8 недель — базовый курс (16 уроков)\n3 месяца — стандартный уровень (24 урока)\n6 месяцев — полное погружение (48 уроков)\n1 год — от нуля до уверенного уровня (96 уроков)",
+                    "en": "4 weeks — intensive start (8 lessons)\n8 weeks — basic course (16 lessons)\n3 months — standard level (24 lessons)\n6 months — full immersion (48 lessons)\n1 year — from zero to confident level (96 lessons)",
+                    "de": "4 Wochen — intensiver Start (8 Lektionen)\n8 Wochen — Grundkurs (16 Lektionen)\n3 Monate — Standardniveau (24 Lektionen)\n6 Monate — vollständige Immersion (48 Lektionen)\n1 Jahr — von null bis sicheres Niveau (96 Lektionen)"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Що включено в кожен урок", "ru": "Что включено в каждый урок", "en": "What's included in every lesson", "de": "Was in jeder Lektion enthalten ist" }
+            },
+            {
+              "type": "list", "align": "left",
+              "content": {
+                "uk": "Вхідне тестування рівня — безкоштовно\nПерший пробний урок — безкоштовно\nІндивідуальний план навчання\nДоступ до платформи з домашніми завданнями\nЗапис уроку (онлайн-формат) для повторення\nЩомісячний звіт про прогрес\nПідтримка у месенджері між уроками",
+                "ru": "Входное тестирование уровня — бесплатно\nПервый пробный урок — бесплатно\nИндивидуальный план обучения\nДоступ к платформе с домашними заданиями\nЗапись урока (онлайн-формат) для повторения\nЕжемесячный отчёт о прогрессе\nПоддержка в мессенджере между уроками",
+                "en": "Entry level test — free\nFirst trial lesson — free\nIndividual learning plan\nAccess to homework platform\nLesson recording (online format) for review\nMonthly progress report\nMessenger support between lessons",
+                "de": "Einstufungstest — kostenlos\nErste Probestunde — kostenlos\nIndividueller Lernplan\nZugang zur Hausaufgaben-Plattform\nLektionsaufzeichnung (Online-Format) zur Wiederholung\nMonatlicher Fortschrittsbericht\nMessenger-Support zwischen den Lektionen"
+              }
+            }
+          ]
+        },
+
         {
-          type: "list", align: "left",
-          content: {
-            uk: "Зовнішня мийка + мийка під тиском колісних арок\nПолірування кузова що 2 тижні\nПрибирання салону з дезінфекцією\nПеревірка рівня масла, тосолу, гальмівної рідини\nПеревірка тиску в усіх 4 шинах\nПеревірка роботи всіх фар та поворотників\nЗаправка до повного бака\nЦифрова фіксація стану авто — фото 360°",
-            ru: "Внешняя мойка + мойка под давлением колёсных арок\nПолировка кузова раз в 2 недели\nУборка салона с дезинфекцией\nПроверка уровня масла, тосола, тормозной жидкости\nПроверка давления во всех 4 шинах\nПроверка работы всех фар и поворотников\nЗаправка до полного бака\nЦифровая фиксация состояния авто — фото 360°",
-            en: "Exterior wash + pressure wash of wheel arches\nBodywork polish every 2 weeks\nInterior cleaning with disinfection\nOil, coolant, brake fluid level check\nAll 4 tyre pressure check\nAll lights and indicators function check\nFuelling to a full tank\nDigital condition log — 360° photos",
-            de: "Außenwäsche + Hochdruckreinigung der Radkästen\nKarosseriepolitur alle 2 Wochen\nInnenraumreinigung mit Desinfektion\nÖl-, Kühlmittel-, Bremsflüssigkeitsstand prüfen\nReifendruck aller 4 Reifen prüfen\nFunktion aller Lichter und Blinker prüfen\nAuftanken bis voll\nDigitale Zustandserfassung — 360°-Fotos"
-          }
+          "slug": "group-courses",
+          "mainImage": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2064",
+          "title":    { "uk": "Групові курси", "ru": "Групповые курсы", "en": "Group Courses", "de": "Gruppenkkurse" },
+          "subtitle": { "uk": "Мінігрупи 4–8 осіб, живе спілкування, практика з першого уроку", "ru": "Мини-группы 4–8 человек, живое общение, практика с первого урока", "en": "Mini-groups of 4–8, live communication, practice from lesson one", "de": "Minigruppen von 4–8, lebendige Kommunikation, Praxis ab der ersten Lektion" },
+          "headerTitle": { "uk": "Вчитися разом — і веселіше, і ефективніше", "ru": "Учиться вместе — и веселее, и эффективнее", "en": "Learning together — more fun and more effective", "de": "Gemeinsam lernen — macht mehr Spaß und ist effektiver" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Групові курси — живе спілкування від першого дня", "ru": "Групповые курсы — живое общение с первого дня", "en": "Group courses — live communication from day one", "de": "Gruppenkurse — lebendige Kommunikation ab dem ersten Tag" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "У групі з 4 до 8 студентів одного рівня ви отримуєте живу практику розмовної мови вже з першого заняття. Рольові ігри, дискусії, парні завдання — все це неможливо відтворити самостійно. Плюс мотивація групи яка тягне вперед навіть у моменти коли хочеться пропустити.",
+                "ru": "В группе от 4 до 8 студентов одного уровня вы получаете живую практику разговорной речи уже с первого занятия. Ролевые игры, дискуссии, парные задания — всё это невозможно воспроизвести самостоятельно. Плюс мотивация группы которая тянет вперёд даже в моменты когда хочется пропустить.",
+                "en": "In a group of 4 to 8 students at the same level you get live conversational practice from the very first lesson. Role plays, discussions, pair tasks — all things impossible to replicate alone. Plus the group motivation that pushes you forward even when you feel like skipping.",
+                "de": "In einer Gruppe von 4 bis 8 Studierenden auf gleichem Niveau erhalten Sie ab der ersten Lektion lebendige Konversationspraxis. Rollenspiele, Diskussionen, Partneraufgaben — alles was man alleine nicht reproduzieren kann. Plus die Gruppenmotivation die einen vorwärts zieht, auch wenn man mal keine Lust hat."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=2032",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Рівні та розклад", "ru": "Уровни и расписание", "en": "Levels and schedule", "de": "Niveaus und Stundenplan" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Beginner (A1–A2) — пн/ср/пт 18:00–19:30\nPre-Intermediate (A2–B1) — вт/чт 18:30–20:00\nIntermediate (B1–B2) — пн/ср 19:00–20:30\nUpper-Intermediate (B2) — вт/пт 18:00–19:30\nAdvanced (C1) — сб 10:00–13:00\nОнлайн-группи — будь-який час за домовленістю",
+                    "ru": "Beginner (A1–A2) — пн/ср/пт 18:00–19:30\nPre-Intermediate (A2–B1) — вт/чт 18:30–20:00\nIntermediate (B1–B2) — пн/ср 19:00–20:30\nUpper-Intermediate (B2) — вт/пт 18:00–19:30\nAdvanced (C1) — сб 10:00–13:00\nОнлайн-группы — в любое время по договорённости",
+                    "en": "Beginner (A1–A2) — Mon/Wed/Fri 18:00–19:30\nPre-Intermediate (A2–B1) — Tue/Thu 18:30–20:00\nIntermediate (B1–B2) — Mon/Wed 19:00–20:30\nUpper-Intermediate (B2) — Tue/Fri 18:00–19:30\nAdvanced (C1) — Sat 10:00–13:00\nOnline groups — any time by arrangement",
+                    "de": "Beginner (A1–A2) — Mo/Mi/Fr 18:00–19:30\nPre-Intermediate (A2–B1) — Di/Do 18:30–20:00\nIntermediate (B1–B2) — Mo/Mi 19:00–20:30\nUpper-Intermediate (B2) — Di/Fr 18:00–19:30\nAdvanced (C1) — Sa 10:00–13:00\nOnline-Gruppen — jederzeit nach Vereinbarung"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image", "align": "right",
+              "media": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1973",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Що входить у групові курси", "ru": "Что входит в групповые курсы", "en": "What group courses include", "de": "Was Gruppenkurse beinhalten" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Підручники та роздаткові матеріали включені\nДоступ до онлайн-платформи з тестами\nРозмовний клуб щотижня — безкоштовно\nЗнижка 20% на індивідуальні уроки\nСертифікат після завершення курсу\nМожливість перейти в інший рівень якщо є прогрес\nЗапис уроків для пропущених занять",
+                    "ru": "Учебники и раздаточные материалы включены\nДоступ к онлайн-платформе с тестами\nРазговорный клуб еженедельно — бесплатно\nСкидка 20% на индивидуальные уроки\nСертификат после завершения курса\nВозможность перейти на другой уровень при наличии прогресса\nЗапись уроков для пропущенных занятий",
+                    "en": "Textbooks and handouts included\nAccess to online platform with tests\nWeekly conversation club — free\n20% discount on individual lessons\nCertificate on course completion\nOption to move to another level if progressing\nLesson recordings for missed classes",
+                    "de": "Lehrbücher und Handouts inklusive\nZugang zur Online-Plattform mit Tests\nWöchentlicher Konversationsclub — kostenlos\n20% Rabatt auf Einzelunterricht\nZertifikat nach Kursabschluss\nMöglichkeit auf ein anderes Niveau zu wechseln bei Fortschritt\nLektionsaufzeichnungen für verpasste Stunden"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          "slug": "exam-preparation",
+          "mainImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+          "title":    { "uk": "Підготовка до іспитів", "ru": "Подготовка к экзаменам", "en": "Exam Preparation", "de": "Prüfungsvorbereitung" },
+          "subtitle": { "uk": "IELTS, TOEFL, Cambridge, TestDaF — з гарантією результату", "ru": "IELTS, TOEFL, Cambridge, TestDaF — с гарантией результата", "en": "IELTS, TOEFL, Cambridge, TestDaF — with guaranteed results", "de": "IELTS, TOEFL, Cambridge, TestDaF — mit Ergebnisgarantie" },
+          "headerTitle": { "uk": "Сертифікат міжнародного рівня — це реально", "ru": "Сертификат международного уровня — это реально", "en": "An international certificate — it's achievable", "de": "Ein internationales Zertifikat — das ist machbar" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Ми знаємо формат іспиту зсередини", "ru": "Мы знаем формат экзамена изнутри", "en": "We know the exam format inside out", "de": "Wir kennen das Prüfungsformat von innen" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Підготовка до IELTS — це не просто вивчення мови. Це розуміння структури кожної секції, стратегій управління часом і типових пасток. Наші викладачі — самі складали ці іспити та мають сертифікати IELTS 8.0+, TestDaF TDN4+. Вони навчать вас не лише мови, а й тактики.",
+                "ru": "Подготовка к IELTS — это не просто изучение языка. Это понимание структуры каждой секции, стратегий управления временем и типичных ловушек. Наши преподаватели — сами сдавали эти экзамены и имеют сертификаты IELTS 8.0+, TestDaF TDN4+. Они научат вас не только языку, но и тактике.",
+                "en": "Preparing for IELTS is not just about learning the language. It's understanding the structure of each section, time management strategies and typical traps. Our teachers have taken these exams themselves and hold IELTS 8.0+, TestDaF TDN4+ certificates. They'll teach you not just the language, but the tactics.",
+                "de": "Die Vorbereitung auf IELTS dreht sich nicht nur ums Sprachenlernen. Es geht um das Verständnis der Struktur jedes Abschnitts, Zeitmanagementstrategien und typische Fallen. Unsere Lehrkräfte haben diese Prüfungen selbst abgelegt und besitzen IELTS 8.0+, TestDaF TDN4+ Zertifikate. Sie lehren nicht nur die Sprache sondern auch die Taktik."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Іспити до яких ми готуємо", "ru": "Экзамены к которым мы готовим", "en": "Exams we prepare for", "de": "Prüfungen für die wir vorbereiten" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "IELTS Academic & General Training\nTOEFL iBT\nCambridge B2 First (FCE)\nCambridge C1 Advanced (CAE)\nTestDaF (Deutsch als Fremdsprache)\nGoethe-Zertifikat B2/C1\nUkrainian language exam (іноземці)",
+                    "ru": "IELTS Academic & General Training\nTOEFL iBT\nCambridge B2 First (FCE)\nCambridge C1 Advanced (CAE)\nTestDaF (Deutsch als Fremdsprache)\nGoethe-Zertifikat B2/C1\nExamen Ukrainian language (иностранцы)",
+                    "en": "IELTS Academic & General Training\nTOEFL iBT\nCambridge B2 First (FCE)\nCambridge C1 Advanced (CAE)\nTestDaF (Deutsch als Fremdsprache)\nGoethe-Zertifikat B2/C1\nUkrainian language exam (foreigners)",
+                    "de": "IELTS Academic & General Training\nTOEFL iBT\nCambridge B2 First (FCE)\nCambridge C1 Advanced (CAE)\nTestDaF (Deutsch als Fremdsprache)\nGoethe-Zertifikat B2/C1\nUkrainische Sprachprüfung (Ausländer)"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image", "align": "right",
+              "media": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Наша гарантія результату", "ru": "Наша гарантия результата", "en": "Our result guarantee", "de": "Unsere Ergebnisgarantie" } },
+                {
+                  "type": "paragraph", "align": "left",
+                  "content": {
+                    "uk": "Якщо ви пройшли повний курс підготовки і не набрали цільовий бал — ми повторюємо курс безкоштовно. За умови відвідування 90%+ уроків і виконання домашніх завдань. Наша статистика: 94% студентів досягають або перевищують цільовий бал з першої спроби.",
+                    "ru": "Если вы прошли полный курс подготовки и не набрали целевой балл — мы повторяем курс бесплатно. При условии посещения 90%+ уроков и выполнения домашних заданий. Наша статистика: 94% студентов достигают или превышают целевой балл с первой попытки.",
+                    "en": "If you completed the full preparation course and didn't reach your target score — we repeat the course for free. Provided you attended 90%+ of lessons and completed homework. Our statistics: 94% of students reach or exceed their target score on the first attempt.",
+                    "de": "Wenn Sie den vollständigen Vorbereitungskurs abgeschlossen haben und die Zielpunktzahl nicht erreicht haben — wiederholen wir den Kurs kostenlos. Vorausgesetzt Sie haben 90%+ der Lektionen besucht und Hausaufgaben erledigt. Unsere Statistik: 94% der Studierenden erreichen oder übertreffen ihre Zielpunktzahl beim ersten Versuch."
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          "slug": "corporate-training",
+          "mainImage": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070",
+          "title":    { "uk": "Корпоративне навчання", "ru": "Корпоративное обучение", "en": "Corporate Training", "de": "Firmenschulungen" },
+          "subtitle": { "uk": "Навчання команди прямо в офісі або онлайн — за вашим розкладом", "ru": "Обучение команды прямо в офисе или онлайн — по вашему расписанию", "en": "Team training at your office or online — on your schedule", "de": "Teamschulung direkt im Büro oder online — nach Ihrem Zeitplan" },
+          "headerTitle": { "uk": "Ваша команда говоритиме мовою партнерів", "ru": "Ваша команда заговорит на языке партнёров", "en": "Your team will speak the language of your partners", "de": "Ihr Team wird die Sprache Ihrer Partner sprechen" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Корпоративні курси — це інвестиція яка повертається", "ru": "Корпоративные курсы — это инвестиция которая возвращается", "en": "Corporate courses — an investment that pays off", "de": "Firmenkurse — eine Investition die sich auszahlt" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Ми розробляємо програму під специфіку вашого бізнесу. IT-компанія — технічна англійська та листування. Готель — гостинна англійська для персоналу. Виробництво — технічна документація. Ми приїжджаємо до вас або проводимо онлайн. Рахунок виставляємо раз на місяць.",
+                "ru": "Мы разрабатываем программу под специфику вашего бизнеса. IT-компания — техническая английская и переписка. Отель — гостеприимная английская для персонала. Производство — техническая документация. Мы приезжаем к вам или проводим онлайн. Счёт выставляем раз в месяц.",
+                "en": "We design the programme for your business specifics. IT company — technical English and correspondence. Hotel — hospitality English for staff. Manufacturing — technical documentation. We come to you or run it online. One invoice per month.",
+                "de": "Wir entwickeln das Programm für die Besonderheiten Ihres Unternehmens. IT-Firma — technisches Englisch und Korrespondenz. Hotel — Gastfreundschaftsenglisch für Personal. Produktion — technische Dokumentation. Wir kommen zu Ihnen oder führen es online durch. Eine Rechnung pro Monat."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Формати корпоративного навчання", "ru": "Форматы корпоративного обучения", "en": "Corporate training formats", "de": "Formate der Firmenschulung" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Групи 4–12 осіб у вашому офісі\nОнлайн-корпоративні групи — Zoom/Teams\nМіні-групи 2–3 особи для менеджменту\nІндивідуальні уроки для керівників\nІнтенсиви перед відрядженням чи конференцією\nВоркшопи з презентацій та ділового листування",
+                    "ru": "Группы 4–12 человек в вашем офисе\nОнлайн корпоративные группы — Zoom/Teams\nМини-группы 2–3 человека для менеджмента\nИндивидуальные уроки для руководителей\nИнтенсивы перед командировкой или конференцией\nВоркшопы по презентациям и деловой переписке",
+                    "en": "Groups of 4–12 at your office\nOnline corporate groups — Zoom/Teams\nMini-groups of 2–3 for management\nIndividual lessons for executives\nIntensives before a business trip or conference\nWorkshops on presentations and business correspondence",
+                    "de": "Gruppen von 4–12 in Ihrem Büro\nOnline-Firmengruppen — Zoom/Teams\nMinigruppen von 2–3 für Management\nEinzelunterricht für Führungskräfte\nIntensivkurse vor Dienstreise oder Konferenz\nWorkshops zu Präsentationen und Geschäftskorrespondenz"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          "slug": "kids-courses",
+          "mainImage": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022",
+          "title":    { "uk": "Курси для дітей", "ru": "Курсы для детей", "en": "Kids Courses", "de": "Kurse für Kinder" },
+          "subtitle": { "uk": "Від 5 до 16 років — ігрове навчання мові без стресу", "ru": "От 5 до 16 лет — игровое обучение языку без стресса", "en": "Ages 5–16 — playful language learning without stress", "de": "Von 5 bis 16 Jahren — spielerisches Sprachenlernen ohne Stress" },
+          "headerTitle": { "uk": "Діти вчать мову грючи — це наш метод", "ru": "Дети учат язык играя — это наш метод", "en": "Children learn language by playing — that's our method", "de": "Kinder lernen Sprachen beim Spielen — das ist unsere Methode" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Ніяких нудних підручників — тільки жива мова", "ru": "Никаких скучных учебников — только живой язык", "en": "No boring textbooks — only living language", "de": "Keine langweiligen Lehrbücher — nur lebendige Sprache" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Діти до 10 років засвоюють мову через пісні, гри, мультфільми і живе спілкування. Після 10 — структурована граматика з ігровими елементами. Ми вчимо так що дитина йде на урок з радістю. Групи максимум 6 дітей щоб кожен отримував увагу.",
+                "ru": "Дети до 10 лет усваивают язык через песни, игры, мультфильмы и живое общение. После 10 — структурированная грамматика с игровыми элементами. Мы учим так чтобы ребёнок шёл на урок с радостью. Группы максимум 6 детей чтобы каждый получал внимание.",
+                "en": "Children under 10 acquire language through songs, games, cartoons and live communication. After 10 — structured grammar with playful elements. We teach in a way that makes children want to come to class. Groups of maximum 6 children so each one gets attention.",
+                "de": "Kinder unter 10 Jahren nehmen Sprache durch Lieder, Spiele, Cartoons und lebendige Kommunikation auf. Nach 10 — strukturierte Grammatik mit spielerischen Elementen. Wir unterrichten so dass Kinder gerne zur Stunde kommen. Gruppen von maximal 6 Kindern damit jedes die Aufmerksamkeit bekommt."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Вікові групи", "ru": "Возрастные группы", "en": "Age groups", "de": "Altersgruppen" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "5–7 років — Pre-Starters (ігровий формат)\n8–10 років — Starters & Movers (пісні, мультики)\n11–13 років — Flyers & KET (структуроване навчання)\n14–16 років — PET & FCE Junior (підготовка до іспитів)\nLittles Online — 30 хвилинні міні-уроки для малюків",
+                    "ru": "5–7 лет — Pre-Starters (игровой формат)\n8–10 лет — Starters & Movers (песни, мультики)\n11–13 лет — Flyers & KET (структурированное обучение)\n14–16 лет — PET & FCE Junior (подготовка к экзаменам)\nLittles Online — 30 минутные мини-уроки для малышей",
+                    "en": "5–7 years — Pre-Starters (playful format)\n8–10 years — Starters & Movers (songs, cartoons)\n11–13 years — Flyers & KET (structured learning)\n14–16 years — PET & FCE Junior (exam preparation)\nLittles Online — 30-minute mini-lessons for young children",
+                    "de": "5–7 Jahre — Pre-Starters (Spielformat)\n8–10 Jahre — Starters & Movers (Lieder, Cartoons)\n11–13 Jahre — Flyers & KET (strukturiertes Lernen)\n14–16 Jahre — PET & FCE Junior (Prüfungsvorbereitung)\nLittles Online — 30-Minuten-Minilektionen für Kleinkinder"
+                  }
+                }
+              ]
+            }
+          ]
         }
-      ]
-    },
-    {
-      type: "heading", align: "center",
-      content: { uk: "Як забронювати авто за 3 хвилини", ru: "Как забронировать авто за 3 минуты", en: "How to book a car in 3 minutes", de: "Wie man ein Auto in 3 Minuten bucht" }
-    },
-    {
-      type: "list", align: "left",
-      content: {
-        uk: "1. Оберіть клас авто та дати на сайті або у месенджері\n2. Вкажіть місце отримання: наш офіс, аеропорт, готель або ваша адреса\n3. Підтвердіть бронювання — ми надішлемо підтвердження на email\n4. У день оренди — пред'явіть паспорт та посвідчення водія\n5. Підпишіть договір, отримайте ключі — і в дорогу",
-        ru: "1. Выберите класс авто и даты на сайте или в мессенджере\n2. Укажите место получения: наш офис, аэропорт, отель или ваш адрес\n3. Подтвердите бронирование — мы пришлём подтверждение на email\n4. В день аренды — предъявите паспорт и водительские права\n5. Подпишите договор, получите ключи — и в путь",
-        en: "1. Choose the car class and dates on the website or messenger\n2. Specify the pickup location: our office, airport, hotel or your address\n3. Confirm the booking — we'll send a confirmation to your email\n4. On the rental day — present your passport and driving licence\n5. Sign the contract, get the keys — and off you go",
-        de: "1. Wählen Sie die Fahrzeugklasse und Daten auf der Website oder im Messenger\n2. Abholort angeben: unser Büro, Flughafen, Hotel oder Ihre Adresse\n3. Buchung bestätigen — wir senden eine Bestätigung an Ihre E-Mail\n4. Am Miettag — Reisepass und Führerschein vorlegen\n5. Vertrag unterschreiben, Schlüssel erhalten — und los geht's"
+      ],
+
+      "prices": [
+        {
+          "category": { "uk": "Індивідуальне навчання", "ru": "Индивидуальное обучение", "en": "Individual Lessons", "de": "Einzelunterricht" },
+          "columns": {
+            "duration": { "uk": "Тривалість курсу", "ru": "Длительность курса", "en": "Course Duration", "de": "Kursdauer" },
+            "procedure": { "uk": "Формат / Мова", "ru": "Формат / Язык", "en": "Format / Language", "de": "Format / Sprache" },
+            "price": { "uk": "Вартість", "ru": "Стоимость", "en": "Price", "de": "Preis" }
+          },
+          "sections": [
+            {
+              "subtitle": { "uk": "Англійська, Німецька — індивідуально", "ru": "Английский, Немецкий — индивидуально", "en": "English, German — individual", "de": "Englisch, Deutsch — Einzelunterricht" },
+              "items": [
+                { "duration": { "uk": "4 тижні (8 уроків)", "ru": "4 недели (8 уроков)", "en": "4 weeks (8 lessons)", "de": "4 Wochen (8 Lektionen)" }, "procedure": { "uk": "Онлайн або офлайн, 60 хв/урок", "ru": "Онлайн или офлайн, 60 мин/урок", "en": "Online or offline, 60 min/lesson", "de": "Online oder Präsenz, 60 Min/Lektion" }, "price": { "uk": "від 6 400 грн", "ru": "от 6 400 грн", "en": "from $160", "de": "ab 160 €" } },
+                { "duration": { "uk": "8 тижнів (16 уроків)", "ru": "8 недель (16 уроков)", "en": "8 weeks (16 lessons)", "de": "8 Wochen (16 Lektionen)" }, "procedure": { "uk": "Онлайн або офлайн, 60 хв/урок", "ru": "Онлайн или офлайн, 60 мин/урок", "en": "Online or offline, 60 min/lesson", "de": "Online oder Präsenz, 60 Min/Lektion" }, "price": { "uk": "від 11 200 грн", "ru": "от 11 200 грн", "en": "from $280", "de": "ab 280 €" } },
+                { "duration": { "uk": "3 місяці (24 уроки)", "ru": "3 месяца (24 урока)", "en": "3 months (24 lessons)", "de": "3 Monate (24 Lektionen)" }, "procedure": { "uk": "Онлайн або офлайн, 60 хв/урок", "ru": "Онлайн или офлайн, 60 мин/урок", "en": "Online or offline, 60 min/lesson", "de": "Online oder Präsenz, 60 Min/Lektion" }, "price": { "uk": "від 15 600 грн", "ru": "от 15 600 грн", "en": "from $390", "de": "ab 390 €" } },
+                { "duration": { "uk": "6 місяців (48 уроків)", "ru": "6 месяцев (48 уроков)", "en": "6 months (48 lessons)", "de": "6 Monate (48 Lektionen)" }, "procedure": { "uk": "Онлайн або офлайн, 60 хв/урок", "ru": "Онлайн или офлайн, 60 мин/урок", "en": "Online or offline, 60 min/lesson", "de": "Online oder Präsenz, 60 Min/Lektion" }, "price": { "uk": "від 27 000 грн", "ru": "от 27 000 грн", "en": "from $680", "de": "ab 680 €" } },
+                { "duration": { "uk": "1 рік (96 уроків)", "ru": "1 год (96 уроков)", "en": "1 year (96 lessons)", "de": "1 Jahr (96 Lektionen)" }, "procedure": { "uk": "Онлайн або офлайн, 60 хв/урок", "ru": "Онлайн или офлайн, 60 мин/урок", "en": "Online or offline, 60 min/lesson", "de": "Online oder Präsenz, 60 Min/Lektion" }, "price": { "uk": "від 48 000 грн", "ru": "от 48 000 грн", "en": "from $1 200", "de": "ab 1 200 €" } }
+              ]
+            }
+          ]
+        },
+        {
+          "category": { "uk": "Групові курси", "ru": "Групповые курсы", "en": "Group Courses", "de": "Gruppenkurse" },
+          "columns": {
+            "duration": { "uk": "Тривалість", "ru": "Длительность", "en": "Duration", "de": "Dauer" },
+            "procedure": { "uk": "Формат", "ru": "Формат", "en": "Format", "de": "Format" },
+            "price": { "uk": "Вартість / особа", "ru": "Стоимость / чел.", "en": "Price / person", "de": "Preis / Person" }
+          },
+          "sections": [
+            {
+              "subtitle": { "uk": "Групи 4–8 осіб (англійська / німецька)", "ru": "Группы 4–8 человек (английский / немецкий)", "en": "Groups of 4–8 (English / German)", "de": "Gruppen von 4–8 (Englisch / Deutsch)" },
+              "items": [
+                { "duration": { "uk": "4 тижні", "ru": "4 недели", "en": "4 weeks", "de": "4 Wochen" }, "procedure": { "uk": "2 рази/тиж, 90 хв, офлайн або онлайн", "ru": "2 раза/нед, 90 мин, офлайн или онлайн", "en": "2x/week, 90 min, offline or online", "de": "2x/Woche, 90 Min, Präsenz oder online" }, "price": { "uk": "від 2 400 грн", "ru": "от 2 400 грн", "en": "from $60", "de": "ab 60 €" } },
+                { "duration": { "uk": "8 тижнів", "ru": "8 недель", "en": "8 weeks", "de": "8 Wochen" }, "procedure": { "uk": "2 рази/тиж, 90 хв, офлайн або онлайн", "ru": "2 раза/нед, 90 мин, офлайн или онлайн", "en": "2x/week, 90 min, offline or online", "de": "2x/Woche, 90 Min, Präsenz oder online" }, "price": { "uk": "від 4 200 грн", "ru": "от 4 200 грн", "en": "from $105", "de": "ab 105 €" } },
+                { "duration": { "uk": "3 місяці", "ru": "3 месяца", "en": "3 months", "de": "3 Monate" }, "procedure": { "uk": "2 рази/тиж, 90 хв, офлайн або онлайн", "ru": "2 раза/нед, 90 мин, офлайн или онлайн", "en": "2x/week, 90 min, offline or online", "de": "2x/Woche, 90 Min, Präsenz oder online" }, "price": { "uk": "від 7 200 грн", "ru": "от 7 200 грн", "en": "from $180", "de": "ab 180 €" } },
+                { "duration": { "uk": "6 місяців", "ru": "6 месяцев", "en": "6 months", "de": "6 Monate" }, "procedure": { "uk": "2–3 рази/тиж, 90 хв", "ru": "2–3 раза/нед, 90 мин", "en": "2–3x/week, 90 min", "de": "2–3x/Woche, 90 Min" }, "price": { "uk": "від 12 000 грн", "ru": "от 12 000 грн", "en": "from $300", "de": "ab 300 €" } },
+                { "duration": { "uk": "1 рік", "ru": "1 год", "en": "1 year", "de": "1 Jahr" }, "procedure": { "uk": "2–3 рази/тиж, 90 хв", "ru": "2–3 раза/нед, 90 мин", "en": "2–3x/week, 90 min", "de": "2–3x/Woche, 90 Min" }, "price": { "uk": "від 20 000 грн", "ru": "от 20 000 грн", "en": "from $500", "de": "ab 500 €" } }
+              ]
+            },
+            {
+              "subtitle": { "uk": "Підготовка до іспитів (IELTS / TestDaF)", "ru": "Подготовка к экзаменам (IELTS / TestDaF)", "en": "Exam preparation (IELTS / TestDaF)", "de": "Prüfungsvorbereitung (IELTS / TestDaF)" },
+              "items": [
+                { "duration": { "uk": "8 тижнів (інтенсив)", "ru": "8 недель (интенсив)", "en": "8 weeks (intensive)", "de": "8 Wochen (Intensiv)" }, "procedure": { "uk": "Група до 6 осіб, 3 рази/тиж", "ru": "Группа до 6 человек, 3 раза/нед", "en": "Group up to 6, 3x/week", "de": "Gruppe bis 6, 3x/Woche" }, "price": { "uk": "від 7 600 грн", "ru": "от 7 600 грн", "en": "from $190", "de": "ab 190 €" } },
+                { "duration": { "uk": "3 місяці", "ru": "3 месяца", "en": "3 months", "de": "3 Monate" }, "procedure": { "uk": "Група до 6 осіб, 2 рази/тиж + індив. консультація", "ru": "Группа до 6 человек, 2 раза/нед + индив. консультация", "en": "Group up to 6, 2x/week + individual consultation", "de": "Gruppe bis 6, 2x/Woche + Einzelberatung" }, "price": { "uk": "від 10 400 грн", "ru": "от 10 400 грн", "en": "from $260", "de": "ab 260 €" } }
+              ]
+            },
+            {
+              "subtitle": { "uk": "Курси для дітей", "ru": "Курсы для детей", "en": "Kids courses", "de": "Kinderkurse" },
+              "items": [
+                { "duration": { "uk": "8 тижнів", "ru": "8 недель", "en": "8 weeks", "de": "8 Wochen" }, "procedure": { "uk": "Група до 6 дітей, 2 рази/тиж, 60 хв", "ru": "Группа до 6 детей, 2 раза/нед, 60 мин", "en": "Group up to 6 kids, 2x/week, 60 min", "de": "Gruppe bis 6 Kinder, 2x/Woche, 60 Min" }, "price": { "uk": "від 3 200 грн", "ru": "от 3 200 грн", "en": "from $80", "de": "ab 80 €" } },
+                { "duration": { "uk": "3 місяці", "ru": "3 месяца", "en": "3 months", "de": "3 Monate" }, "procedure": { "uk": "Група до 6 дітей, 2 рази/тиж, 60 хв", "ru": "Группа до 6 детей, 2 раза/нед, 60 мин", "en": "Group up to 6 kids, 2x/week, 60 min", "de": "Gruppe bis 6 Kinder, 2x/Woche, 60 Min" }, "price": { "uk": "від 5 400 грн", "ru": "от 5 400 грн", "en": "from $135", "de": "ab 135 €" } }
+              ]
+            }
+          ]
+        }
+      ],
+
+      "employees": [
+        {
+          "slug": "anna-kovalenko",
+          "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=688",
+          "fullName":  { "uk": "Анна Коваленко",  "ru": "Анна Коваленко",   "en": "Anna Kovalenko",  "de": "Anna Kovalenko" },
+          "shortName": { "uk": "А. Коваленко",    "ru": "А. Коваленко",     "en": "A. Kovalenko",    "de": "A. Kovalenko" },
+          "position":  { "uk": "Старший викладач англійської, IELTS-коуч", "ru": "Старший преподаватель английского, IELTS-коуч", "en": "Senior English Teacher, IELTS Coach", "de": "Oberlehrerin Englisch, IELTS-Coach" },
+          "specializations": [
+            { "uk": "Підготовка до IELTS Academic — результати 7.0–8.5", "ru": "Подготовка к IELTS Academic — результаты 7.0–8.5", "en": "IELTS Academic preparation — scores 7.0–8.5", "de": "IELTS Academic Vorbereitung — Ergebnisse 7,0–8,5" },
+            { "uk": "Бізнес-англійська для IT та фінансів", "ru": "Бизнес-английский для IT и финансов", "en": "Business English for IT and finance", "de": "Business-Englisch für IT und Finanzen" },
+            { "uk": "Розмовна практика — середній та просунутий рівні", "ru": "Разговорная практика — средний и продвинутый уровни", "en": "Conversational practice — intermediate and advanced", "de": "Konversationspraxis — Mittel- und Fortgeschrittenenniveau" }
+          ],
+          "education": [
+            { "uk": "КНУ ім. Шевченка — Англійська філологія (2012)", "ru": "КНУ им. Шевченко — Английская филология (2012)", "en": "Taras Shevchenko National University — English Philology (2012)", "de": "Nationale Universität Kiew — Englische Philologie (2012)" },
+            { "uk": "University of Edinburgh — MEd TESOL (2015)", "ru": "University of Edinburgh — MEd TESOL (2015)", "en": "University of Edinburgh — MEd TESOL (2015)", "de": "University of Edinburgh — MEd TESOL (2015)" }
+          ],
+          "certificates": [
+            "IELTS 8.5 — British Council (2014)",
+            "CELTA — Cambridge Assessment English (2013)",
+            "DELTA Module 2 — Cambridge (2017)",
+            "10+ років викладацького досвіду, 400+ студентів"
+          ]
+        },
+        {
+          "slug": "markus-bauer",
+          "photo": "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=687",
+          "fullName":  { "uk": "Маркус Бауер",    "ru": "Маркус Бауэр",    "en": "Markus Bauer",    "de": "Markus Bauer" },
+          "shortName": { "uk": "М. Бауер",        "ru": "М. Бауэр",        "en": "M. Bauer",        "de": "M. Bauer" },
+          "position":  { "uk": "Викладач німецької мови, носій мови", "ru": "Преподаватель немецкого языка, носитель языка", "en": "German Language Teacher, native speaker", "de": "Deutschlehrer, Muttersprachler" },
+          "specializations": [
+            { "uk": "Підготовка до TestDaF та Goethe-Zertifikat", "ru": "Подготовка к TestDaF и Goethe-Zertifikat", "en": "Preparation for TestDaF and Goethe-Zertifikat", "de": "Vorbereitung auf TestDaF und Goethe-Zertifikat" },
+            { "uk": "Ділова та академічна німецька", "ru": "Деловой и академический немецкий", "en": "Business and academic German", "de": "Wirtschafts- und Akademisches Deutsch" },
+            { "uk": "Вимова та фонетика для початківців", "ru": "Произношение и фонетика для начинающих", "en": "Pronunciation and phonetics for beginners", "de": "Aussprache und Phonetik für Anfänger" }
+          ],
+          "education": [
+            { "uk": "Humboldt-Universität zu Berlin — Германістика (2008)", "ru": "Humboldt-Universität zu Berlin — Германистика (2008)", "en": "Humboldt University Berlin — German Studies (2008)", "de": "Humboldt-Universität zu Berlin — Germanistik (2008)" },
+            { "uk": "Goethe-Institut — DaF-Lehrerausbildung (2010)", "ru": "Goethe-Institut — DaF-Lehrerausbildung (2010)", "en": "Goethe-Institut — DaF Teacher Training (2010)", "de": "Goethe-Institut — DaF-Lehrerausbildung (2010)" }
+          ],
+          "certificates": [
+            "DaF-Lehrkraft zertifiziert — Goethe-Institut",
+            "TestDaF TDN 5 (максимальний результат)",
+            "7 років в Україні, спеціалізація — підготовка до міграційних іспитів"
+          ]
+        },
+        {
+          "slug": "olena-savchenko",
+          "photo": "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2074",
+          "fullName":  { "uk": "Олена Савченко",  "ru": "Елена Савченко",   "en": "Olena Savchenko", "de": "Olena Savchenko" },
+          "shortName": { "uk": "О. Савченко",     "ru": "Е. Савченко",      "en": "O. Savchenko",    "de": "O. Savchenko" },
+          "position":  { "uk": "Викладач дитячих курсів та Cambridge Young Learners", "ru": "Преподаватель детских курсов и Cambridge Young Learners", "en": "Kids Courses & Cambridge Young Learners Teacher", "de": "Lehrkraft für Kinderkurse & Cambridge Young Learners" },
+          "specializations": [
+            { "uk": "Навчання дітей 5–12 років через гру та творчість", "ru": "Обучение детей 5–12 лет через игру и творчество", "en": "Teaching children 5–12 through play and creativity", "de": "Unterrichten von Kindern 5–12 durch Spiel und Kreativität" },
+            { "uk": "Cambridge Young Learners — Starters, Movers, Flyers", "ru": "Cambridge Young Learners — Starters, Movers, Flyers", "en": "Cambridge Young Learners — Starters, Movers, Flyers", "de": "Cambridge Young Learners — Starters, Movers, Flyers" },
+            { "uk": "Англійська для підлітків 13–17 років", "ru": "Английский для подростков 13–17 лет", "en": "English for teenagers 13–17", "de": "Englisch für Teenager 13–17" }
+          ],
+          "education": [
+            { "uk": "НПДУ — Дошкільна освіта та англійська мова (2010)", "ru": "НПДУ — Дошкольное образование и английский язык (2010)", "en": "NPDU — Early Childhood Education & English (2010)", "de": "NPDU — Frühkindliche Bildung & Englisch (2010)" }
+          ],
+          "certificates": [
+            "TKT Young Learners — Cambridge Assessment (2015)",
+            "CELTA — Cambridge (2013)",
+            "Montessori Level 1 Certificate (2018)",
+            "8 років роботи виключно з дітьми та підлітками"
+          ]
+        },
+        {
+          "slug": "ivan-petrenko",
+          "photo": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=687",
+          "fullName":  { "uk": "Іван Петренко",   "ru": "Иван Петренко",    "en": "Ivan Petrenko",   "de": "Ivan Petrenko" },
+          "shortName": { "uk": "І. Петренко",     "ru": "И. Петренко",      "en": "I. Petrenko",     "de": "I. Petrenko" },
+          "position":  { "uk": "Викладач TOEFL, бізнес-англійської та корпоративних курсів", "ru": "Преподаватель TOEFL, бизнес-английского и корпоративных курсов", "en": "TOEFL, Business English & Corporate Courses Teacher", "de": "TOEFL-, Business-Englisch- & Firmenkurslehrer" },
+          "specializations": [
+            { "uk": "TOEFL iBT — підготовка для вступу в американські університети", "ru": "TOEFL iBT — подготовка для поступления в американские университеты", "en": "TOEFL iBT — preparation for US university admission", "de": "TOEFL iBT — Vorbereitung für US-Universitätszulassung" },
+            { "uk": "Корпоративна англійська для IT, юридичних та фінансових компаній", "ru": "Корпоративная английская для IT, юридических и финансовых компаний", "en": "Corporate English for IT, legal and financial companies", "de": "Unternehmens-Englisch für IT-, Rechts- und Finanzfirmen" },
+            { "uk": "Презентації, переговори та ділова переписка англійською", "ru": "Презентации, переговоры и деловая переписка на английском", "en": "Presentations, negotiations and business correspondence in English", "de": "Präsentationen, Verhandlungen und Geschäftskorrespondenz auf Englisch" }
+          ],
+          "education": [
+            { "uk": "КПІ ім. Сікорського — Прикладна лінгвістика (2009)", "ru": "КПИ им. Сикорского — Прикладная лингвистика (2009)", "en": "KPI — Applied Linguistics (2009)", "de": "KPI — Angewandte Linguistik (2009)" },
+            { "uk": "Columbia University — Online Certificate: Teaching English (2019)", "ru": "Columbia University — Online Certificate: Teaching English (2019)", "en": "Columbia University — Online Certificate: Teaching English (2019)", "de": "Columbia University — Online Certificate: Teaching English (2019)" }
+          ],
+          "certificates": [
+            "TOEFL iBT 115/120 (2018)",
+            "CELTA — Cambridge (2011)",
+            "12 років у корпоративному навчанні",
+            "Клієнти: Deloitte, EPAM, OTP Bank, Нова Пошта"
+          ]
+        }
+      ],
+
+      "faqs": [
+        {
+          "question": { "uk": "З чого починається навчання у LinguaPoint?", "ru": "С чего начинается обучение в LinguaPoint?", "en": "How does learning at LinguaPoint begin?", "de": "Wie beginnt das Lernen bei LinguaPoint?" },
+          "answer": { "uk": "Все починається з безкоштовного тестування рівня — онлайн, займає 15 хвилин. Потім вільна розмова з викладачем (30 хвилин) щоб зрозуміти ваші цілі та слабкі місця. Після цього ми пропонуємо оптимальний формат та план навчання. Перший пробний урок — також безкоштовно.", "ru": "Всё начинается с бесплатного тестирования уровня — онлайн, занимает 15 минут. Затем свободная беседа с преподавателем (30 минут) чтобы понять ваши цели и слабые места. После этого мы предлагаем оптимальный формат и план обучения. Первый пробный урок — тоже бесплатно.", "en": "Everything starts with a free level test — online, takes 15 minutes. Then a free conversation with the teacher (30 minutes) to understand your goals and weak points. After that we suggest the optimal format and learning plan. The first trial lesson is also free.", "de": "Alles beginnt mit einem kostenlosen Einstufungstest — online, dauert 15 Minuten. Dann ein freies Gespräch mit dem Lehrer (30 Minuten) um Ihre Ziele und Schwachstellen zu verstehen. Danach schlagen wir das optimale Format und den Lernplan vor. Die erste Probestunde ist ebenfalls kostenlos." }
+        },
+        {
+          "question": { "uk": "Яку мову вибрати для вивчення?", "ru": "Какой язык выбрать для изучения?", "en": "Which language should I choose?", "de": "Welche Sprache soll ich wählen?" },
+          "answer": { "uk": "Залежить від вашої мети. Англійська — якщо потрібна для роботи, подорожей, IELTS або еміграції до Канади/Австралії/США. Німецька — якщо плануєте вчитися або переїхати до Німеччини/Австрії/Швейцарії, або потрібна TestDaF. Українська та російська — для іноземців які живуть або планують переїхати до України. Якщо не знаєте — поговоріть з нашим консультантом безкоштовно.", "ru": "Зависит от вашей цели. Английский — если нужен для работы, путешествий, IELTS или эмиграции в Канаду/Австралию/США. Немецкий — если планируете учиться или переехать в Германию/Австрию/Швейцарию, или нужен TestDaF. Украинский и русский — для иностранцев которые живут или планируют переехать в Украину. Если не знаете — поговорите с нашим консультантом бесплатно.", "en": "It depends on your goal. English — if you need it for work, travel, IELTS or emigrating to Canada/Australia/USA. German — if you plan to study or move to Germany/Austria/Switzerland, or need TestDaF. Ukrainian and Russian — for foreigners living or planning to move to Ukraine. If you're unsure — talk to our consultant for free.", "de": "Es hängt von Ihrem Ziel ab. Englisch — wenn Sie es für die Arbeit, Reisen, IELTS oder Auswanderung nach Kanada/Australien/USA brauchen. Deutsch — wenn Sie planen in Deutschland/Österreich/der Schweiz zu studieren oder umzuziehen, oder TestDaF benötigen. Ukrainisch und Russisch — für Ausländer die in der Ukraine leben oder dorthin umziehen wollen. Wenn Sie unsicher sind — sprechen Sie kostenlos mit unserem Berater." }
+        },
+        {
+          "question": { "uk": "Скільки часу потрібно щоб вивчити англійську з нуля?", "ru": "Сколько времени нужно чтобы выучить английский с нуля?", "en": "How long does it take to learn English from scratch?", "de": "Wie lange dauert es Englisch von Grund auf zu lernen?" },
+          "answer": { "uk": "Офіційні дані Ради Європи: з A0 до B2 (розмовний рівень) — 600–800 годин практики. При 2 уроках на тиждень + домашні завдання — це 2–3 роки. При інтенсивному навчанні 5 разів на тиждень — 1–1.5 роки. Реалістичний прогрес у нас: за 3 місяці ви впевнено піднімаєтесь на 1 рівень (A1→A2 або B1→B2).", "ru": "Официальные данные Совета Европы: с A0 до B2 (разговорный уровень) — 600–800 часов практики. При 2 уроках в неделю + домашние задания — это 2–3 года. При интенсивном обучении 5 раз в неделю — 1–1.5 года. Реалистичный прогресс у нас: за 3 месяца вы уверенно поднимаетесь на 1 уровень (A1→A2 или B1→B2).", "en": "Official Council of Europe data: from A0 to B2 (conversational level) — 600–800 hours of practice. At 2 lessons per week + homework — that's 2–3 years. With intensive training 5 times a week — 1–1.5 years. Realistic progress with us: in 3 months you confidently move up 1 level (A1→A2 or B1→B2).", "de": "Offizielle Daten des Europarates: Von A0 bis B2 (Konversationsniveau) — 600–800 Stunden Praxis. Bei 2 Stunden pro Woche + Hausaufgaben — das sind 2–3 Jahre. Bei intensivem Training 5 Mal pro Woche — 1–1,5 Jahre. Realistischer Fortschritt bei uns: In 3 Monaten steigen Sie sicher um 1 Niveau (A1→A2 oder B1→B2)." }
+        },
+        {
+          "question": { "uk": "Чи можна навчатися онлайн?", "ru": "Можно ли учиться онлайн?", "en": "Can I learn online?", "de": "Kann ich online lernen?" },
+          "answer": { "uk": "Так, усі наші курси доступні онлайн у повноцінному форматі. Ми використовуємо Zoom + інтерактивну дошку Miro. Онлайн-уроки нічим не поступаються офлайн за якістю — особливо для середнього та просунутого рівнів. Єдине що доступно лише офлайн — живий розмовний клуб у нашому офісі по суботах.", "ru": "Да, все наши курсы доступны онлайн в полноценном формате. Мы используем Zoom + интерактивную доску Miro. Онлайн-уроки ничем не уступают офлайн по качеству — особенно для среднего и продвинутого уровней. Единственное что доступно только офлайн — живой разговорный клуб в нашем офисе по субботам.", "en": "Yes, all our courses are available online in full format. We use Zoom + the Miro interactive whiteboard. Online lessons are just as good as offline in quality — especially for intermediate and advanced levels. The only thing available exclusively offline is the live conversation club at our office on Saturdays.", "de": "Ja, alle unsere Kurse sind vollständig online verfügbar. Wir nutzen Zoom + das interaktive Whiteboard Miro. Online-Lektionen stehen Präsenzlektionen qualitativ in nichts nach — besonders für Mittel- und Fortgeschrittenenniveaus. Das Einzige das ausschließlich offline verfügbar ist, ist der Live-Konversationsclub in unserem Büro samstags." }
+        },
+        {
+          "question": { "uk": "Що якщо я пропускаю уроки?", "ru": "Что если я пропускаю уроки?", "en": "What if I miss lessons?", "de": "Was wenn ich Lektionen verpasse?" },
+          "answer": { "uk": "У груповому форматі — усі уроки записуються, пропущені заняття можна переглянути в особистому кабінеті. Також є можливість відпрацювати урок в іншій групі того ж рівня (за наявності місць). В індивідуальному форматі — перенесення уроку за 24 години безкоштовно, за менше ніж 24 години — урок вважається проведеним.", "ru": "В групповом формате — все уроки записываются, пропущенные занятия можно просмотреть в личном кабинете. Также есть возможность отработать урок в другой группе того же уровня (при наличии мест). В индивидуальном формате — перенос урока за 24 часа бесплатно, менее чем за 24 часа — урок считается проведённым.", "en": "In group format — all lessons are recorded and missed classes can be watched in your personal account. You can also make up a lesson in another group at the same level (subject to availability). In individual format — rescheduling 24 hours in advance is free; less than 24 hours and the lesson counts as used.", "de": "Im Gruppenformat — alle Lektionen werden aufgezeichnet und verpasste Stunden können im persönlichen Konto angesehen werden. Es gibt auch die Möglichkeit eine Lektion in einer anderen Gruppe auf demselben Niveau nachzuholen (je nach Verfügbarkeit). Im Einzelformat — Verschiebung 24 Stunden im Voraus ist kostenlos; unter 24 Stunden gilt die Lektion als abgehalten." }
+        },
+        {
+          "question": { "uk": "Чи видається сертифікат після закінчення курсу?", "ru": "Выдаётся ли сертификат после окончания курса?", "en": "Is a certificate issued after completing a course?", "de": "Wird nach Kursabschluss ein Zertifikat ausgestellt?" },
+          "answer": { "uk": "Так. Після завершення курсу та підсумкового тесту ви отримуєте сертифікат LinguaPoint із зазначенням мови, рівня та кількості годин. Для курсів підготовки до міжнародних іспитів — сертифікат з відміткою про підготовку до IELTS/TestDaF/Cambridge. Сертифікат видається у цифровому та паперовому форматі.", "ru": "Да. После завершения курса и итогового теста вы получаете сертификат LinguaPoint с указанием языка, уровня и количества часов. Для курсов подготовки к международным экзаменам — сертификат с отметкой о подготовке к IELTS/TestDaF/Cambridge. Сертификат выдаётся в цифровом и бумажном формате.", "en": "Yes. After completing the course and the final test you receive a LinguaPoint certificate specifying the language, level and number of hours. For international exam preparation courses — a certificate noting preparation for IELTS/TestDaF/Cambridge. The certificate is issued in both digital and paper format.", "de": "Ja. Nach Kursabschluss und dem Abschlusstest erhalten Sie ein LinguaPoint-Zertifikat mit Angabe der Sprache, des Niveaus und der Stundenzahl. Für Kurse zur Vorbereitung auf internationale Prüfungen — ein Zertifikat mit Vermerk zur IELTS/TestDaF/Cambridge-Vorbereitung. Das Zertifikat wird in digitaler und Papierform ausgestellt." }
+        }
+      ],
+
+      "specials": [
+        {
+          "slug": "free-trial-plus-10percent",
+          "title": { "uk": "Безкоштовний пробний урок + 10% на перший курс", "ru": "Бесплатный пробный урок + 10% на первый курс", "en": "Free trial lesson + 10% off your first course", "de": "Kostenlose Probestunde + 10% auf den ersten Kurs" },
+          "subtitle": { "uk": "Спробуйте без ризику — і отримайте знижку якщо вирішите залишитися", "ru": "Попробуйте без риска — и получите скидку если решите остаться", "en": "Try without risk — and get a discount if you decide to stay", "de": "Probieren Sie ohne Risiko — und erhalten Sie einen Rabatt wenn Sie bleiben" },
+          "mainImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+          "content": [
+            { "type": "paragraph", "align": "left", "content": { "uk": "Перший урок з будь-яким нашим викладачем — абсолютно безкоштовно. Без передоплати, без карти. Просто запишіться через форму або месенджер. Якщо після пробного уроку ви вирішите продовжити — отримуєте 10% знижки на будь-який перший курс. Акція діє для нових студентів.", "ru": "Первый урок с любым нашим преподавателем — абсолютно бесплатно. Без предоплаты, без карты. Просто запишитесь через форму или мессенджер. Если после пробного урока вы решите продолжить — получаете 10% скидки на любой первый курс. Акция действует для новых студентов.", "en": "The first lesson with any of our teachers is completely free. No prepayment, no card required. Just sign up via the form or messenger. If after the trial lesson you decide to continue — you get a 10% discount on any first course. Offer valid for new students.", "de": "Die erste Lektion mit jedem unserer Lehrer ist völlig kostenlos. Keine Vorauszahlung, keine Karte erforderlich. Melden Sie sich einfach über das Formular oder Messenger an. Wenn Sie sich nach der Probestunde entscheiden weiterzumachen — erhalten Sie 10% Rabatt auf jeden ersten Kurs. Angebot gilt für neue Studierende." } }
+          ],
+          "serviceId": [],
+          "prices": [],
+          "blogs": []
+        },
+        {
+          "slug": "refer-friend-both-get-discount",
+          "title": { "uk": "Приведи друга — обидва отримають -15%", "ru": "Приведи друга — оба получат -15%", "en": "Refer a friend — both get -15%", "de": "Freund werben — beide bekommen -15%" },
+          "subtitle": { "uk": "Навчайтеся разом і платіть менше — реферальна програма LinguaPoint", "ru": "Учитесь вместе и платите меньше — реферальная программа LinguaPoint", "en": "Learn together and pay less — LinguaPoint referral programme", "de": "Lernen Sie zusammen und zahlen Sie weniger — LinguaPoint Empfehlungsprogramm" },
+          "mainImage": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070",
+          "content": [
+            { "type": "paragraph", "align": "left", "content": { "uk": "Порекомендуйте LinguaPoint другу — і обидва отримаєте 15% знижки на наступний оплачений курс. Умова: друг має оплатити повний курс (не менше 8 тижнів). Знижка нараховується автоматично після першої оплати друга. Без обмежень на кількість друзів — кожен новий реферал = нова знижка для вас.", "ru": "Порекомендуйте LinguaPoint другу — и оба получите 15% скидки на следующий оплаченный курс. Условие: друг должен оплатить полный курс (не менее 8 недель). Скидка начисляется автоматически после первой оплаты друга. Без ограничений на количество друзей — каждый новый реферал = новая скидка для вас.", "en": "Recommend LinguaPoint to a friend — and both of you get a 15% discount on your next paid course. Condition: the friend must pay for a full course (minimum 8 weeks). The discount is credited automatically after the friend's first payment. No limit on the number of friends — each new referral = a new discount for you.", "de": "Empfehlen Sie LinguaPoint einem Freund — und Sie beide erhalten 15% Rabatt auf Ihren nächsten bezahlten Kurs. Bedingung: Der Freund muss einen vollständigen Kurs bezahlen (mindestens 8 Wochen). Der Rabatt wird automatisch nach der ersten Zahlung des Freundes gutgeschrieben. Keine Begrenzung der Freundesanzahl — jede neue Empfehlung = ein neuer Rabatt für Sie." } }
+          ],
+          "serviceId": [],
+          "prices": [],
+          "blogs": []
+        },
+        {
+          "slug": "summer-intensive-20off",
+          "title": { "uk": "Літній інтенсив: –20% на групові курси червень–серпень", "ru": "Летний интенсив: –20% на групповые курсы июнь–август", "en": "Summer Intensive: –20% on group courses June–August", "de": "Sommer-Intensiv: –20% auf Gruppenkurse Juni–August" },
+          "subtitle": { "uk": "Літо — ідеальний час для прориву в мові. Використайте його з вигодою", "ru": "Лето — идеальное время для прорыва в языке. Используйте его с выгодой", "en": "Summer is the perfect time for a language breakthrough. Make the most of it", "de": "Sommer ist die perfekte Zeit für einen Sprachdurchbruch. Nutzen Sie ihn mit Vorteil" },
+          "mainImage": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2064",
+          "content": [
+            { "type": "paragraph", "align": "left", "content": { "uk": "У червні, липні та серпні всі групові курси — зі знижкою 20%. Літні групи формуються швидко — не більше 6 осіб, часто щоденні заняття. Це можливість за 3 місяці пройти те, що зазвичай займає пів року. Знижка не підсумовується з іншими акціями.", "ru": "В июне, июле и августе все групповые курсы — со скидкой 20%. Летние группы формируются быстро — не более 6 человек, часто ежедневные занятия. Это возможность за 3 месяца пройти то, что обычно занимает полгода. Скидка не суммируется с другими акциями.", "en": "In June, July and August all group courses come with a 20% discount. Summer groups fill up fast — no more than 6 people, often daily sessions. This is your chance to cover in 3 months what normally takes half a year. Discount cannot be combined with other offers.", "de": "Im Juni, Juli und August erhalten alle Gruppenkurse 20% Rabatt. Sommergruppen füllen sich schnell — maximal 6 Personen, oft tägliche Sitzungen. Das ist Ihre Chance in 3 Monaten zu schaffen was normalerweise ein halbes Jahr dauert. Rabatt nicht mit anderen Angeboten kombinierbar." } }
+          ],
+          "serviceId": [],
+          "prices": [],
+          "blogs": []
+        }
+      ],
+
+      "photos": [
+        {
+          "title": { "uk": "LinguaPoint зсередини", "ru": "LinguaPoint изнутри", "en": "LinguaPoint Inside", "de": "LinguaPoint von innen" },
+          "description": { "uk": "Наші класи, заходи та команда", "ru": "Наши классы, мероприятия и команда", "en": "Our classrooms, events and team", "de": "Unsere Klassenräume, Veranstaltungen und Team" },
+          "mainImage": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=2032",
+          "imgArr": [
+            { "src": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070", "title": { "uk": "Клас для дорослих", "ru": "Класс для взрослых", "en": "Adult classroom", "de": "Erwachsenenklassenraum" }, "description": { "uk": "Сучасне обладнання та зручні місця для навчання", "ru": "Современное оборудование и удобные места для учёбы", "en": "Modern equipment and comfortable learning spaces", "de": "Moderne Ausstattung und komfortable Lernplätze" } },
+            { "src": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2064", "title": { "uk": "Групове заняття", "ru": "Групповое занятие", "en": "Group lesson", "de": "Gruppenunterricht" }, "description": { "uk": "Жива атмосфера та активна розмовна практика", "ru": "Живая атмосфера и активная разговорная практика", "en": "Lively atmosphere and active conversational practice", "de": "Lebendige Atmosphäre und aktive Konversationspraxis" } },
+            { "src": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1973", "title": { "uk": "Онлайн-урок", "ru": "Онлайн-урок", "en": "Online lesson", "de": "Online-Lektion" }, "description": { "uk": "Повноцінний онлайн-формат з інтерактивною дошкою", "ru": "Полноценный онлайн-формат с интерактивной доской", "en": "Full online format with interactive whiteboard", "de": "Vollständiges Online-Format mit interaktivem Whiteboard" } },
+            { "src": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022", "title": { "uk": "Дитячий клас", "ru": "Детский класс", "en": "Kids classroom", "de": "Kinderklassenraum" }, "description": { "uk": "Яскраве та безпечне середовище для навчання дітей", "ru": "Яркая и безопасная среда для обучения детей", "en": "Bright and safe environment for children's learning", "de": "Helle und sichere Umgebung für das Lernen der Kinder" } },
+            { "src": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070", "title": { "uk": "Розмовний клуб", "ru": "Разговорный клуб", "en": "Conversation club", "de": "Konversationsclub" }, "description": { "uk": "Щосуботній безкоштовний розмовний клуб для студентів", "ru": "Еженедельный бесплатный разговорный клуб для студентов", "en": "Weekly free conversation club for students", "de": "Wöchentlicher kostenloser Konversationsclub für Studierende" } },
+            { "src": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=2032", "title": { "uk": "Церемонія вручення сертифікатів", "ru": "Церемония вручения сертификатов", "en": "Certificate ceremony", "de": "Zertifikatsverleihung" }, "description": { "uk": "Кожне завершення курсу — маленьке свято для нашої команди і студентів", "ru": "Каждое завершение курса — маленький праздник для нашей команды и студентов", "en": "Every course completion is a small celebration for our team and students", "de": "Jeder Kursabschluss ist ein kleines Fest für unser Team und die Studierenden" } }
+          ]
+        }
+      ],
+
+      "blogs": [
+        {
+          "slug": "how-to-learn-english-in-6-months",
+          "mainImage": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1973",
+          "title": { "uk": "Як вивчити англійську за 6 місяців: чесний план без казок", "ru": "Как выучить английский за 6 месяцев: честный план без сказок", "en": "How to learn English in 6 months: an honest plan with no fairy tales", "de": "Wie man Englisch in 6 Monaten lernt: ein ehrlicher Plan ohne Märchen" },
+          "subtitle": { "uk": "Реалістичний маршрут від A1 до B2 з конкретними кроками", "ru": "Реалистичный маршрут от A1 до B2 с конкретными шагами", "en": "A realistic roadmap from A1 to B2 with concrete steps", "de": "Ein realistischer Weg von A1 bis B2 mit konkreten Schritten" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "6 місяців = 720 годин. Скільки з них ви готові вкласти в мову?", "ru": "6 месяцев = 720 часов. Сколько из них вы готовы вложить в язык?", "en": "6 months = 720 hours. How many of them are you ready to invest in the language?", "de": "6 Monate = 720 Stunden. Wie viele davon sind Sie bereit in die Sprache zu investieren?" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Чесна відповідь: за 6 місяців з нуля до B2 — нереально якщо ви займаєтесь 2 рази на тиждень по 60 хвилин. Але цілком реально піднятися на 2 рівні (A1→B1 або A2→B2) при правильній стратегії та мінімум 1 годині практики щодня. Ми розбили цей шлях на 4 фази.",
+                "ru": "Честный ответ: за 6 месяцев с нуля до B2 — нереально если вы занимаетесь 2 раза в неделю по 60 минут. Но вполне реально подняться на 2 уровня (A1→B1 или A2→B2) при правильной стратегии и минимум 1 часе практики ежедневно. Мы разбили этот путь на 4 фазы.",
+                "en": "The honest answer: going from zero to B2 in 6 months is unrealistic if you study twice a week for 60 minutes. But moving up 2 levels (A1→B1 or A2→B2) in 6 months is entirely realistic with the right strategy and at least 1 hour of daily practice. We've broken this path into 4 phases.",
+                "de": "Die ehrliche Antwort: Von null auf B2 in 6 Monaten zu schaffen ist unrealistisch wenn man zweimal pro Woche 60 Minuten lernt. Aber 2 Niveaus aufzusteigen (A1→B1 oder A2→B2) in 6 Monaten ist absolut realistisch mit der richtigen Strategie und mindestens 1 Stunde täglicher Praxis. Wir haben diesen Weg in 4 Phasen aufgeteilt."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1973",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "4 фази плану", "ru": "4 фазы плана", "en": "4 phases of the plan", "de": "4 Phasen des Plans" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Місяць 1–2: Фундамент — базова граматика та 500 найпотрібніших слів\nМісяць 3: Занурення — щоденне аудіювання і читання\nМісяць 4–5: Говоріння — мінімум 30 хвилин розмовної практики щодня\nМісяць 6: Фінальний спринт — симуляції іспиту або реальні розмови з носієм",
+                    "ru": "Месяц 1–2: Фундамент — базовая грамматика и 500 самых нужных слов\nМесяц 3: Погружение — ежедневное аудирование и чтение\nМесяц 4–5: Говорение — минимум 30 минут разговорной практики ежедневно\nМесяц 6: Финальный спринт — симуляции экзамена или реальные разговоры с носителем",
+                    "en": "Month 1–2: Foundation — basic grammar and the 500 most needed words\nMonth 3: Immersion — daily listening and reading\nMonth 4–5: Speaking — at least 30 minutes of conversational practice daily\nMonth 6: Final sprint — exam simulations or real conversations with a native speaker",
+                    "de": "Monat 1–2: Fundament — Grundgrammatik und die 500 wichtigsten Wörter\nMonat 3: Eintauchen — tägliches Hörverstehen und Lesen\nMonat 4–5: Sprechen — mindestens 30 Minuten Konversationspraxis täglich\nMonat 6: Endspurt — Prüfungssimulationen oder echte Gespräche mit einem Muttersprachler"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Конкретні інструменти які працюють", "ru": "Конкретные инструменты которые работают", "en": "Specific tools that work", "de": "Konkrete Werkzeuge die funktionieren" }
+            },
+            {
+              "type": "list", "align": "left",
+              "content": {
+                "uk": "Anki — флеш-картки для нових слів, 20 хвилин щоранку\nYouGlish — чути як носії вимовляють конкретне слово\nLangmate — знайти партнера для розмовного обміну\nBBC Learning English — структуровані подкасти за рівнями\nNetflix + Language Reactor — дивитися серіали з паралельними субтитрами\nChatGPT — тренувати письмо і отримувати корекцію помилок\nНаш розмовний клуб щосуботи — живе спілкування безкоштовно",
+                "ru": "Anki — флеш-карточки для новых слов, 20 минут каждое утро\nYouGlish — слышать как носители произносят конкретное слово\nLangmate — найти партнёра для разговорного обмена\nBBC Learning English — структурированные подкасты по уровням\nNetflix + Language Reactor — смотреть сериалы с параллельными субтитрами\nChatGPT — тренировать письмо и получать коррекцию ошибок\nНаш разговорный клуб каждую субботу — живое общение бесплатно",
+                "en": "Anki — flashcards for new words, 20 minutes every morning\nYouGlish — hear how native speakers pronounce a specific word\nLangmate — find a partner for conversational exchange\nBBC Learning English — structured podcasts by level\nNetflix + Language Reactor — watch series with parallel subtitles\nChatGPT — practise writing and get error corrections\nOur Saturday conversation club — live communication for free",
+                "de": "Anki — Lernkarten für neue Wörter, 20 Minuten jeden Morgen\nYouGlish — hören wie Muttersprachler ein bestimmtes Wort aussprechen\nLangmate — einen Partner für Sprachaustausch finden\nBBC Learning English — strukturierte Podcasts nach Niveau\nNetflix + Language Reactor — Serien mit parallelen Untertiteln ansehen\nChatGPT — Schreiben üben und Fehlerkorrekturen erhalten\nUnser Konversationsclub jeden Samstag — lebendige Kommunikation kostenlos"
+              }
+            }
+          ]
+        },
+        {
+          "slug": "ielts-vs-toefl-which-to-choose",
+          "mainImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+          "title": { "uk": "IELTS vs TOEFL: який іспит вибрати і чому", "ru": "IELTS vs TOEFL: какой экзамен выбрать и почему", "en": "IELTS vs TOEFL: which exam to choose and why", "de": "IELTS vs TOEFL: Welche Prüfung wählen und warum" },
+          "subtitle": { "uk": "Порівнюємо формат, вартість, складність та де кожен визнається", "ru": "Сравниваем формат, стоимость, сложность и где каждый признаётся", "en": "Comparing format, cost, difficulty and where each is recognised", "de": "Format, Kosten, Schwierigkeitsgrad und Anerkennung im Vergleich" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Головне питання: куди ви їдете і для чого потрібен сертифікат", "ru": "Главный вопрос: куда вы едете и для чего нужен сертификат", "en": "The key question: where are you going and what is the certificate for", "de": "Die Schlüsselfrage: Wohin gehen Sie und wofür brauchen Sie das Zertifikat" }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "IELTS — обирайте якщо:", "ru": "IELTS — выбирайте если:", "en": "Choose IELTS if:", "de": "Wählen Sie IELTS wenn:" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Плануєте до Великобританії, Австралії, Канади або Нової Зеландії\nПотрібен для імміграційних цілей або ПМЖ\nХочете Academic або General Training версію\nПереважно письмовий формат вам комфортніший\nВартість: ~$250 USD",
+                    "ru": "Планируете в Великобританию, Австралию, Канаду или Новую Зеландию\nНужен для иммиграционных целей или ПМЖ\nХотите Academic или General Training версию\nВ основном письменный формат вам удобнее\nСтоимость: ~$250 USD",
+                    "en": "Planning to go to the UK, Australia, Canada or New Zealand\nNeeded for immigration or permanent residency\nYou want the Academic or General Training version\nYou're more comfortable with primarily written format\nCost: ~$250 USD",
+                    "de": "Sie planen nach Großbritannien, Australien, Kanada oder Neuseeland\nBenötigt für Einwanderungszwecke oder dauerhaften Aufenthalt\nSie möchten die Academic oder General Training Version\nDas überwiegend schriftliche Format ist Ihnen angenehmer\nKosten: ~250 USD"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image", "align": "right",
+              "media": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "TOEFL — обирайте якщо:", "ru": "TOEFL — выбирайте если:", "en": "Choose TOEFL if:", "de": "Wählen Sie TOEFL wenn:" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Плануєте до США або американських університетів\nПереваги комп'ютерного формату онлайн\nМаєте сильніший академічний бекграунд\nПотрібно для магістратури або PhD в USA\nВартість: ~$200–$245 USD",
+                    "ru": "Планируете в США или американские университеты\nПредпочитаете компьютерный формат онлайн\nИмеете более сильный академический бэкграунд\nНужен для магистратуры или PhD в USA\nСтоимость: ~$200–$245 USD",
+                    "en": "Planning to go to the USA or American universities\nYou prefer a computer-based online format\nYou have a stronger academic background\nNeeded for a Master's or PhD in the USA\nCost: ~$200–$245 USD",
+                    "de": "Sie planen in die USA oder an amerikanische Universitäten\nSie bevorzugen das computerbasierte Online-Format\nSie haben einen stärkeren akademischen Hintergrund\nBenötigt für Master- oder PhD in den USA\nKosten: ~200–245 USD"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Не можете вирішити? Запишіться на безкоштовну консультацію з нашим IELTS/TOEFL-тренером — ми проаналізуємо ваш цільовий університет або країну та дамо чітку рекомендацію.",
+                "ru": "Не можете решить? Запишитесь на бесплатную консультацию с нашим IELTS/TOEFL-тренером — мы проанализируем ваш целевой университет или страну и дадим чёткую рекомендацию.",
+                "en": "Can't decide? Book a free consultation with our IELTS/TOEFL coach — we'll analyse your target university or country and give you a clear recommendation.",
+                "de": "Können Sie sich nicht entscheiden? Buchen Sie eine kostenlose Beratung mit unserem IELTS/TOEFL-Coach — wir analysieren Ihre Zieluniversität oder -land und geben Ihnen eine klare Empfehlung."
+              }
+            }
+          ]
+        },
+        {
+          "slug": "german-language-tips-for-beginners",
+          "mainImage": "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2074",
+          "title": { "uk": "Німецька для початківців: 7 порад які врятують вас від помилок", "ru": "Немецкий для начинающих: 7 советов которые спасут вас от ошибок", "en": "German for beginners: 7 tips that will save you from mistakes", "de": "Deutsch für Anfänger: 7 Tipps die Sie vor Fehlern bewahren" },
+          "subtitle": { "uk": "Викладач-носій мови Маркус Бауер ділиться чесними порадами", "ru": "Преподаватель-носитель языка Маркус Бауэр делится честными советами", "en": "Native speaker teacher Markus Bauer shares honest advice", "de": "Muttersprachler-Lehrer Markus Bauer teilt ehrliche Ratschläge" },
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "Чому німецька здається складною — і чому насправді вона не така страшна", "ru": "Почему немецкий кажется сложным — и почему на самом деле он не такой страшный", "en": "Why German seems hard — and why it's actually not that scary", "de": "Warum Deutsch schwer erscheint — und warum es eigentlich nicht so schlimm ist" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "Більшість людей лякаються відмінків (der/die/das), довгих слів та граматичних правил. Але насправді: після 200 годин практики мозок починає «чути» правильний артикль без зазубрювання. Головне — почати говорити відразу, навіть якщо робите помилки.",
+                "ru": "Большинство людей пугаются падежей (der/die/das), длинных слов и грамматических правил. Но на самом деле: после 200 часов практики мозг начинает «слышать» правильный артикль без зазубривания. Главное — начать говорить сразу, даже если делаете ошибки.",
+                "en": "Most people are scared by cases (der/die/das), long words and grammar rules. But in reality: after 200 hours of practice the brain starts to 'hear' the correct article without memorising. The key is to start speaking immediately, even when you make mistakes.",
+                "de": "Die meisten Menschen haben Angst vor Fällen (der/die/das), langen Wörtern und Grammatikregeln. Aber in Wirklichkeit: Nach 200 Stunden Praxis beginnt das Gehirn den richtigen Artikel zu 'hören' ohne auswendig zu lernen. Das Wichtigste ist sofort anzufangen zu sprechen, auch wenn man Fehler macht."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2074",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "7 порад від Маркуса", "ru": "7 советов от Маркуса", "en": "7 tips from Markus", "de": "7 Tipps von Markus" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "1. Вчіть іменники ЗАВЖДИ з артиклем: не «Hund», а «der Hund»\n2. Слухайте Slow German подкаст — ідеально для A2–B1\n3. Не бійтесь довгих слів — вони складаються з простих частин\n4. Щодня 10 нових слів через Anki — і тільки речення, не переклад\n5. Deutsche Welle має безкоштовні курси для всіх рівнів\n6. Дивіться німецькі фільми з субтитрами — хоч 15 хвилин щодня\n7. Говоріть вголос — навіть якщо нема з ким. З собою. З кішкою.",
+                    "ru": "1. Учите существительные ВСЕГДА с артиклем: не «Hund», а «der Hund»\n2. Слушайте подкаст Slow German — идеально для A2–B1\n3. Не бойтесь длинных слов — они состоят из простых частей\n4. Ежедневно 10 новых слов через Anki — и только предложения, не перевод\n5. Deutsche Welle имеет бесплатные курсы для всех уровней\n6. Смотрите немецкие фильмы с субтитрами — хоть 15 минут в день\n7. Говорите вслух — даже если не с кем. С собой. С кошкой.",
+                    "en": "1. Learn nouns ALWAYS with their article: not 'Hund' but 'der Hund'\n2. Listen to the Slow German podcast — perfect for A2–B1\n3. Don't be scared of long words — they're made of simple parts\n4. 10 new words daily via Anki — in sentences only, not translations\n5. Deutsche Welle has free courses for all levels\n6. Watch German films with subtitles — even 15 minutes a day\n7. Speak aloud — even when alone. To yourself. To your cat.",
+                    "de": "1. Lernen Sie Substantive IMMER mit Artikel: nicht 'Hund' sondern 'der Hund'\n2. Hören Sie den Slow German Podcast — perfekt für A2–B1\n3. Haben Sie keine Angst vor langen Wörtern — sie bestehen aus einfachen Teilen\n4. Täglich 10 neue Wörter über Anki — nur in Sätzen, nicht als Übersetzung\n5. Deutsche Welle hat kostenlose Kurse für alle Niveaus\n6. Schauen Sie deutsche Filme mit Untertiteln — mindestens 15 Minuten täglich\n7. Sprechen Sie laut — auch wenn niemand da ist. Mit sich selbst. Mit der Katze."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+
+      "pages": {
+        "about": {
+          "routeKey": "about",
+          "content": [
+            {
+              "type": "heading", "align": "left",
+              "content": { "uk": "LinguaPoint — мовна школа яка будується на результатах, а не обіцянках", "ru": "LinguaPoint — языковая школа которая строится на результатах, а не обещаниях", "en": "LinguaPoint — a language school built on results, not promises", "de": "LinguaPoint — eine Sprachschule die auf Ergebnissen aufgebaut ist, nicht auf Versprechen" }
+            },
+            {
+              "type": "paragraph", "align": "left",
+              "content": {
+                "uk": "LinguaPoint відкрився у 2019 році — але до цього наша команда 7 років працювала у великих мовних мережах. Ми бачили все: переповнені групи де студент не встигає говорити, невмотивованих викладачів на потоці, красиві офіси без реального результату. Ми вирішили зробити по-іншому: менше, але краще.",
+                "ru": "LinguaPoint открылся в 2019 году — но до этого наша команда 7 лет работала в крупных языковых сетях. Мы видели всё: переполненные группы где студент не успевает говорить, немотивированных преподавателей на потоке, красивые офисы без реального результата. Мы решили сделать по-другому: меньше, но лучше.",
+                "en": "LinguaPoint opened in 2019 — but before that our team spent 7 years working in large language school chains. We saw it all: overcrowded groups where students barely get to speak, unmotivated assembly-line teachers, beautiful offices with no real results. We decided to do it differently: less, but better.",
+                "de": "LinguaPoint eröffnete 2019 — aber davor hat unser Team 7 Jahre in großen Sprachschulketten gearbeitet. Wir haben alles gesehen: überfüllte Gruppen wo Studierende kaum zu Wort kommen, unmotivierte Fließband-Lehrkräfte, schöne Büros ohne echte Ergebnisse. Wir entschieden es anders zu machen: weniger, aber besser."
+              }
+            },
+            {
+              "type": "image", "align": "left",
+              "media": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=2032",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "LinguaPoint у цифрах", "ru": "LinguaPoint в цифрах", "en": "LinguaPoint by the numbers", "de": "LinguaPoint in Zahlen" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "4 мови викладання\n12 викладачів у команді\n1 800+ студентів за всю історію\n94% студентів рекомендують нас друзям\nРейтинг Google: 4.9/5 (340+ відгуків)\nМакс. 8 осіб у групі — жодного винятку\nБезкоштовний перший урок — завжди",
+                    "ru": "4 языка преподавания\n12 преподавателей в команде\n1 800+ студентов за всю историю\n94% студентов рекомендуют нас друзьям\nРейтинг Google: 4.9/5 (340+ отзывов)\nМакс. 8 человек в группе — никаких исключений\nБесплатный первый урок — всегда",
+                    "en": "4 teaching languages\n12 teachers in the team\n1,800+ students throughout our history\n94% of students recommend us to friends\nGoogle rating: 4.9/5 (340+ reviews)\nMax 8 people in a group — no exceptions\nFree first lesson — always",
+                    "de": "4 Unterrichtssprachen\n12 Lehrkräfte im Team\n1.800+ Studierende in unserer Geschichte\n94% der Studierenden empfehlen uns an Freunde\nGoogle-Bewertung: 4,9/5 (340+ Bewertungen)\nMax. 8 Personen in einer Gruppe — keine Ausnahmen\nKostenlose erste Lektion — immer"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image", "align": "right",
+              "media": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070",
+              "widthPercent": 50,
+              "children": [
+                { "type": "heading", "align": "left", "content": { "uk": "Як ми відбираємо викладачів", "ru": "Как мы отбираем преподавателей", "en": "How we select our teachers", "de": "Wie wir unsere Lehrkräfte auswählen" } },
+                {
+                  "type": "list", "align": "left",
+                  "content": {
+                    "uk": "Мінімальний рівень сертифікату: CELTA, DELTA або DaF\nОбов'язкове пробне заняття перед комісією\nПеревірка результатів попередніх студентів\nЩоквартальний зворотний зв'язок від студентів\nОбов'язкові внутрішні тренінги з методики\nВикладачі самі здають іспити які викладають\nПлата вища за середню по ринку — бо ми хочемо кращих",
+                    "ru": "Минимальный уровень сертификата: CELTA, DELTA или DaF\nОбязательное пробное занятие перед комиссией\nПроверка результатов предыдущих студентов\nЕжеквартальная обратная связь от студентов\nОбязательные внутренние тренинги по методике\nПреподаватели сами сдают экзамены которые преподают\nОплата выше средней по рынку — потому что мы хотим лучших",
+                    "en": "Minimum certificate level: CELTA, DELTA or DaF\nMandatory demo lesson before the panel\nReview of previous students' results\nQuarterly student feedback\nMandatory internal methodology trainings\nTeachers take the exams they teach\nPay above market average — because we want the best",
+                    "de": "Mindestzertifikatsniveau: CELTA, DELTA oder DaF\nObligatorische Demostunde vor dem Ausschuss\nÜberprüfung der Ergebnisse früherer Studierender\nVierteljährliches Studierendenfeedback\nObligatorische interne Methodikschulungen\nLehrkräfte legen die Prüfungen selbst ab die sie unterrichten\nVergütung über dem Marktdurchschnitt — weil wir die Besten wollen"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "heading", "align": "center",
+              "content": { "uk": "Як записатися на урок за 3 хвилини", "ru": "Как записаться на урок за 3 минуты", "en": "How to sign up for a lesson in 3 minutes", "de": "Wie man sich in 3 Minuten für eine Lektion anmeldet" }
+            },
+            {
+              "type": "list", "align": "left",
+              "content": {
+                "uk": "1. Пройдіть безкоштовний тест рівня на сайті або у месенджері\n2. Оберіть формат: індивідуально, група, онлайн чи офлайн\n3. Оберіть викладача або дайте нам підібрати\n4. Узгодьте зручний час для пробного уроку\n5. Перший урок — безкоштовно. Рішення після нього — ваше",
+                "ru": "1. Пройдите бесплатный тест уровня на сайте или в мессенджере\n2. Выберите формат: индивидуально, группа, онлайн или офлайн\n3. Выберите преподавателя или дайте нам подобрать\n4. Согласуйте удобное время для пробного урока\n5. Первый урок — бесплатно. Решение после него — ваше",
+                "en": "1. Take the free level test on the website or via messenger\n2. Choose the format: individual, group, online or offline\n3. Choose a teacher or let us match you\n4. Agree on a convenient time for the trial lesson\n5. The first lesson is free. The decision after is yours",
+                "de": "1. Machen Sie den kostenlosen Einstufungstest auf der Website oder per Messenger\n2. Wählen Sie das Format: Einzel, Gruppe, online oder Präsenz\n3. Wählen Sie eine Lehrkraft oder lassen Sie uns eine auswählen\n4. Vereinbaren Sie eine passende Zeit für die Probestunde\n5. Die erste Lektion ist kostenlos. Die Entscheidung danach liegt bei Ihnen"
+              }
+            }
+          ]
+        }
       }
     }
-  ]
-};
+
+const {
+  meta,
+  generalInfo,
+  services,
+  prices,
+  employees,
+  faqs,
+  specials,
+  photos,
+  blogs,
+  pages,
+} = busines;
+
+const aboutPage = pages.about;
 
 // ═══════════════════════════════════════════════════════════
 // UPLOAD ALL
@@ -998,7 +909,7 @@ export async function uploadAll() {
 
     await uploadPage(aboutPage);
 
-    console.log("\n🎉 DrivePoint — all data uploaded successfully!");
+    console.log("\n🎉 LinguaPoint — all data uploaded successfully!");
     console.log(`   Slug: ${businessSlug}`);
     console.log(`\n   Tab names (унікальні назви):`);
     console.log(`   about     → "Гараж / Our Garage"`);

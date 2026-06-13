@@ -71,7 +71,7 @@ export default function Header() {
           {businessSlug && (
               <Link
                   to={`/${lang}/admin/${businessSlug}/meta`}
-                  className="hidden sm:flex items-center text-foreground gap-2 bg-black/5 hover:bg-black hover:text-white px-5 py-3 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest border border-black/5 shadow-sm"
+                  className="flex items-center text-foreground gap-2 bg-black/5 hover:bg-black hover:text-white px-5 py-3 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest border border-black/5 shadow-sm"
               >
                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                 Admin
@@ -124,7 +124,7 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <div className="hidden lg:flex gap-2">
+            <div className="flex gap-2">
               <LanguageSwitcher />
               <ThemeSwitcher />
             </div>
@@ -148,7 +148,7 @@ export default function Header() {
             </div>
           </div>
 
-          <Link to={`/${lang}/${businessSlug}`} className="text-xl font-bold p-4" onClick={() => setMenuOpen(false)}>
+          <Link to={`/${lang}/${businessSlug}`} className="text-xl font-bold p-4 text-foreground" onClick={() => setMenuOpen(false)}>
             {getLocalizedText(meta.name, lang)}
           </Link>
 
@@ -156,7 +156,7 @@ export default function Header() {
               <Link
                   key={tab.route || index}
                   to={`/${lang}/${businessSlug}/${tab.route}`}
-                  className="text-xl font-medium p-4 border-b dark:border-white/10 "
+                  className="text-xl font-medium p-4 border-b dark:border-white/10 text-foreground"
                   onClick={() => setMenuOpen(false)}
               >
                 {getLocalizedText(tab.shortName, lang)}
