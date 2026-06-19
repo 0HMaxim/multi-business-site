@@ -23,6 +23,7 @@ This is a full-featured SaaS platform built for business entities. It includes a
 - 🌍 **Multilingual Support** - content available in 4 languages
 - 🌗 **Light / Dark Theme** - theme toggle for end users
 - ➕ **Custom Pages** - add extra pages (e.g. job openings, employee of the month, news)
+- ***  Customize header images and tab titles for each page
 - 📷 **Photo Gallery** - upload and manage photos
 
 ---
