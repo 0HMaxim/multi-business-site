@@ -38,4 +38,4 @@ This is a full-featured SaaS platform built for business entities. It includes a
 
 ## 💡 Goal
 
-The platform is designed so that **any business** can run their own branded website and independently manage all content - staff, services, promotions, blog, FAQ, and photos - in 4 languages, without developer involvement.
+The platform is designed so that **any business** can run their own branded website and independently manage all content - staff, services, promotions, blog, FAQ, photos and Custom Page, HeaderImage and tab titels for each page - in 4 languages, without developer involvement.
